@@ -21,6 +21,8 @@ dependencies:
     sdk: flutter
   google_fonts: ^0.3.7
   flutter_gallery_assets: 0.1.9+2
+  animations: ^1.0.0+5
+  date_format: ^1.0.8
   flutter_picker:
     git: git://github.com/yangyxd/flutter_picker.git
 

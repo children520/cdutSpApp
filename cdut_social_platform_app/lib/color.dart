@@ -6,7 +6,7 @@ const cdutSpBlue400 = const Color(0xFF0129d7);
 
 const cdutSpOrange900 = const Color(0xFFfe8d03);
 const cdutSpGrey =const Color(0xFF757575);
-const cdutSpRed = const Color(0xFFC5032B);
+const cdutSpRed = Colors.red;
 
 const cdutSpBackGroundWhite = const Color(0xFFe0e0e0);
 const cdutSpWhite = Colors.white;

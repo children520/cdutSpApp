@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:cdut_social_platform_app/Register.dart';
 import 'package:cdut_social_platform_app/home.dart';
 import 'package:cdut_social_platform_app/login.dart';
+import 'package:cdut_social_platform_app/post.dart';
 import 'package:flutter/material.dart';
 import 'tools/cut_corners_border.dart';
 import 'package:google_fonts/google_fonts.dart';
