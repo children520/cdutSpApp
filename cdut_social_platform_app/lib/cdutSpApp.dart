@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:cdut_social_platform_app/Register.dart';
+import 'package:cdut_social_platform_app/register.dart';
 import 'package:cdut_social_platform_app/home.dart';
 import 'package:cdut_social_platform_app/login.dart';
 import 'package:cdut_social_platform_app/post.dart';
@@ -13,19 +13,20 @@ class cdutSocialPlatformApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: HomePage(),
+      home: LoginPage(),
       initialRoute: '/login',
-      onGenerateRoute: _getRoute,
-      theme: ThemeData(
-        brightness: Brightness.light,
-        primaryColor: cdutSpBlue100,
-        accentColor: cdutSpBlue100
-      ),
-      //theme: _cdutSpBlueTheme,
+      routes: {
+        '/login':(context)=>LoginPage(),
+        '/home':(context)=>HomePage(),
+        '/register':(context)=>RegisterPage(),
+      },
+      //onGenerateRoute: _getRoute,
+      theme: _cdutSpBlueTheme,
     );
   }
 
   Route<dynamic> _getRoute(RouteSettings settings) {
+    print(settings.name);
     if (settings.name != '/login') {
       return null;
     }
@@ -39,26 +40,66 @@ class cdutSocialPlatformApp extends StatelessWidget {
 
 
 final ThemeData _cdutSpBlueTheme = _buildCdutSpTheme();
-  ThemeData _buildCdutSpTheme(){
-    return ThemeData(
-      primaryColor: cdutSpBlue100,
-      accentColor: cdutSpOrange900,
-      textTheme: TextTheme(
-        headline: GoogleFonts.zCOOLXiaoWei(
-          fontSize: 30
-        ),
-        title: GoogleFonts.zCOOLKuaiLe(
-          fontSize: 20,
-          letterSpacing: 5
-        ),
-        body1: TextStyle(
-          fontSize: 16
-        )
-      ).apply(
-        bodyColor: cdutSpWhite
+
+
+ThemeData _buildCdutSpTheme(){
+  final ThemeData base=ThemeData.light();
+  return base.copyWith(
+    primaryColor: cdutSpBlue100,
+    accentColor: cdutSpOrange900,
+    buttonTheme: base.buttonTheme.copyWith(
+      buttonColor: cdutSpBlue100,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10)
+      ),
+      colorScheme: base.colorScheme.copyWith(
+        secondary: cdutSpBlue100
+      ),
+      textTheme: ButtonTextTheme.primary
+    ),
+    buttonBarTheme: base.buttonBarTheme.copyWith(
+      buttonTextTheme: ButtonTextTheme.primary,
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      border:OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(width: 2)
       )
-    );
-  }
+    ),
+    //textSelectionColor: cdutSpBlack87,
+    textTheme: _buildCdutSpTextTheme(base.textTheme),
+    accentTextTheme: _buildCdutSpTextTheme(base.accentTextTheme),
+    primaryTextTheme: _buildCdutSpTextTheme(base.primaryTextTheme),
+    tabBarTheme: base.tabBarTheme.copyWith(
+      labelColor: cdutSpWhite
+    )
+  );
+}
+TextTheme _buildCdutSpTextTheme(TextTheme base){
+  //const textStyle = const TextStyle(fontFamily: 'ZCOOLXiaoWei',);
+  return base.copyWith(
+      headline: base.headline.copyWith(
+        fontFamily:'ZCOOLXiaoWei',
+        fontSize: 24,
+
+      ),
+      title: base.title.copyWith(
+          fontSize: 18.0,
+          fontFamily:'ZCOOLXiaoWei',
+
+      ),
+      body1: base.body1.copyWith(
+          fontSize: 14.0
+      ),
+      body2: base.body2.copyWith(
+        fontWeight: FontWeight.bold
+      ),
+
+  ).apply(
+      displayColor: cdutSpWhite,
+      bodyColor: cdutSpBlack87
+  );
+}
 
 /*
   ThemeData _buildCdutSpTheme() {
@@ -85,26 +126,21 @@ final ThemeData _cdutSpBlueTheme = _buildCdutSpTheme();
       accentTextTheme: _buildCdutSpTextTheme(base.accentTextTheme),
     );
   }
-  TextTheme _buildCdutSpTextTheme(TextTheme base){
-    return base.copyWith(
-      headline: base.headline.copyWith(
-        fontWeight: FontWeight.w500,
+
+  TextTheme(
+      headline: GoogleFonts.zCOOLXiaoWei(
+        fontSize: 30
       ),
-      title: base.title.copyWith(
-        fontSize: 18.0
+      title: GoogleFonts.zCOOLKuaiLe(
+        fontSize: 20,
+        letterSpacing: 5
       ),
-      caption: base.title.copyWith(
-        fontSize: 14.0
-      ),
-      body1: base.body1.copyWith(
-        fontSize: 16.0
+      body1: TextStyle(
+        fontSize: 16
       )
     ).apply(
-      displayColor: cdutSpOrange900,
-      bodyColor: cdutSpOrange900
-    );
-  }
-
+      bodyColor: cdutSpWhite
+    )
  */
 
 

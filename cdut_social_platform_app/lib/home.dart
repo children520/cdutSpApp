@@ -86,6 +86,7 @@ final Map<CdutSpPage,List<CdutSpCardData>> _allPages=<CdutSpPage,List<CdutSpCard
 
 };
 class HomePage extends StatefulWidget {
+  static const routeName = '/home';
   @override
   _HomePageState createState() {
     return _HomePageState();

@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'model/cdutSpPageModel.dart';
 import 'package:date_format/date_format.dart';
 class PostPage extends StatefulWidget{
+  static const routeName = '/post';
   PostPage({this.page,Key key}): super(key:key);
   final CdutSpPage page;
   @override

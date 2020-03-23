@@ -12,3 +12,4 @@ const cdutSpBackGroundWhite = const Color(0xFFe0e0e0);
 const cdutSpWhite = Colors.white;
 const cdutSpWhite38=Colors.white38;
 const cdutSpWhite70=Colors.white70;
+const cdutSpBlack87=Colors.black87;
