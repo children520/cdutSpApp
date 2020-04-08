@@ -101,8 +101,8 @@ class _RegisterPageState extends State<RegisterPage>{
     setState(() {
       RadioValue=value;
     });
-    print(RadioValue);
-    user.sex=RadioValue;
+    RadioValue==0?user.sex="Boy":user.sex="Girl";
+
   }
 
   String _ValidateUserName(String value) {
@@ -143,16 +143,20 @@ class _RegisterPageState extends State<RegisterPage>{
     if(value.length!=11){
       return '电话号码长度错误';
     }
+
     return null;
   }
 
   void _handleRegisted() {
+
     final FormState formState=_formKey.currentState;
     if(!formState.validate()){
       _autoValidate=true;
       //showInSnackBar('请更正提交之前的错误！');
     }else{
       _ValidateCollage();
+      _ValidateSex();
+      user.password='123456';
       formState.save();
       showInSnackBar('正在注册......');
       Future.delayed(Duration(seconds: 2),(){
@@ -160,8 +164,6 @@ class _RegisterPageState extends State<RegisterPage>{
           _futureUser=createUser(user);
         });
       });
-
-
 
       //children修改为user
 
@@ -172,6 +174,12 @@ class _RegisterPageState extends State<RegisterPage>{
     if(user.collage==null){
       user.collage=collage;
     }
+  }
+  void _ValidateSex(){
+    if(user.sex==null){
+      user.sex="Boy";
+    }
+
   }
 
   void showInSnackBar(String value){
@@ -281,7 +289,7 @@ class _RegisterPageState extends State<RegisterPage>{
                 )
             ),
             obscureText: true,
-            initialValue: '12345678',
+            initialValue: "12345678",
             validator: _ValidatePassword,
           ),
         ),
@@ -409,7 +417,6 @@ class _RegisterPageState extends State<RegisterPage>{
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(
                     labelText: '用户名',
-                    helperText: '限输入中文字符',
                     border: UnderlineInputBorder(
                     ),
                     prefixIcon: Icon(
@@ -417,9 +424,10 @@ class _RegisterPageState extends State<RegisterPage>{
                       size: 20,
                     ),
                   ),
-                  onSaved: (String value) {user.name= value;},
+                  onSaved: (String value) {user.userName= value;},
                   validator: _ValidateUserName,
                   initialValue: 'children',
+
                 ),
               ),
               BuildRadio()
@@ -452,28 +460,57 @@ class _RegisterPageState extends State<RegisterPage>{
   }
   Future<User> createUser(User user) async{
     final http.Response response= await http.Client().post(
-      'http://10.0.2.2:8080/user/add',
+      'http://10.0.2.2:8080/user/registration',
       headers: <String,String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(<String,dynamic>{
-        'name':user.name,
+        'userName':user.userName,
         'password':user.password,
         'collage':user.collage,
         'sex':user.sex,
         'phoneNumber':user.phoneNumber
       }),
     );
-
+    Map<String,dynamic> responseJson=json.decode(response.body);
     if(response.statusCode==200){
-      showInSnackBar('注册成功，即将跳转到登陆页面');
+      showInSnackBar('用户'+responseJson['userName']+'注册成功，即将跳转到登陆页面');
       Future.delayed(Duration(seconds: 2),(){
-        Navigator.pop(context, 'children');
+        //Navigator.pop(context, 'children');
       });
     }else{
-      showInSnackBar('注册失败');
-      throw Exception('注册失败');
+
+      String message=responseJson['message'];
+      showInSnackBar(message);
+      //throw Exception('注册失败');
     }
+  }
+  Future<http.Response> searchUserIsRepeated(String userName,String phoneNumber) async{
+    String url='http://10.0.2.2:8080/user/';
+    if(userName.isNotEmpty){
+      url=url+'userName/'+userName;
+    }
+    if(phoneNumber.isNotEmpty){
+      url=url+'phoneNumber/'+phoneNumber;
+    }
+    final http.Response response= await http.Client().get(
+      url,
+      headers:<String,String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+    );
+    print(response.statusCode);
+    if(response.statusCode==200){
+
+    }else{
+      if(userName.isEmpty){
+        showInSnackBar('手机号已注册');
+      }
+      else{
+        showInSnackBar('用户名已注册');
+      }
+    }
+    return response;
   }
 }
 
