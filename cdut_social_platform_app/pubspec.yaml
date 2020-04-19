@@ -21,6 +21,7 @@ dependencies:
     sdk: flutter
   google_fonts: ^0.3.7
   flutter_gallery_assets: 0.1.9+2
+  shared_preferences: ^0.5.6+3
   animations: ^1.0.0+5
   date_format: ^1.0.8
   http: ^0.12.0+4
@@ -53,6 +54,8 @@ flutter:
     - family: ZCOOLXiaoWei
       fonts:
         - asset: assets/fonts/ZCOOLXiaoWei-Regular.ttf
+
+
 
 
 

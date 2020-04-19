@@ -1,18 +1,19 @@
 class User{
   String userName;
-  String phoneNumber;
+  String email;
   String password;
   String sex;
   String collage;
-
-  User({this.userName, this.phoneNumber, this.password, this.sex, this.collage});
+  String phoneNumber;
+  User({this.userName, this.email, this.password, this.sex, this.collage,this.phoneNumber});
   factory User.fromJson(Map<String,dynamic> json){
     return User(
         userName: json['userName'],
-        phoneNumber:json['phoneNumber'],
+        email:json['email'],
         password:json['password'],
         sex:json['sex'],
-        collage:json['collage']
+        collage:json['collage'],
+        phoneNumber:json['phoneNumber']
     );
   }
 }

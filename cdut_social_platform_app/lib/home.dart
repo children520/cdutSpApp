@@ -1,11 +1,14 @@
 
 import 'dart:ffi';
 import 'package:animations/animations.dart';
+import 'package:cdut_social_platform_app/login.dart';
 import 'package:cdut_social_platform_app/post.dart';
+import 'package:cdut_social_platform_app/register.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cdut_social_platform_app/color.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'model/cdutSpPageModel.dart';
 import 'model/cdutSpCardDataModel.dart';
 import 'detail.dart';
@@ -99,6 +102,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   AnimationController _controller;
   Animation<RelativeRect> _layerAnimation;
   CdutSpPage cdutSpPage;
+  String userName;
 
   @override
   void initState(){
@@ -108,8 +112,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   @override
   void dispose(){
     _controller.dispose();
+    print("dispose");
     super.dispose();
+
   }
+
+  void removeUserState() async{
+    SharedPreferences preferences=await SharedPreferences.getInstance();
+    preferences.remove("userName");
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -122,113 +134,124 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               SliverOverlapAbsorber(
                 handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
                     context),
-                child: SliverAppBar(
-                  expandedHeight: 160,
-                  pinned: true,
-                  backgroundColor: cdutSpBlue100,
-                  automaticallyImplyLeading: false,
-                  forceElevated: true,
-                  centerTitle: true,
-                  title: CdutSpBackdropTitle(
-                      listenable:_controller.view
-                  ),
-                  leading: IconButton(
-                    icon: AnimatedIcon(
-                      icon: AnimatedIcons.close_menu,
-                      progress: _controller.view,
-                    ),
-                    onPressed: _CdutSpToggleBackDropVisibility,
-                  ),
-                  actions: <Widget>[
-                    PopupMenuButton(
-                      icon: Icon(Icons.expand_more,color: cdutSpWhite,),
-                      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                        const PopupMenuItem<String>(
-                          child: ListTile(
-                            leading: Icon(Icons.access_time),
-                            title: Text('时间'),
-                          ),
-                        ),
-                        const PopupMenuItem<String>(
-                          child: ListTile(
-                            leading: Icon(Icons.thumb_up),
-                            title: Text('热度'),
-                          ),
-                        ),
-                      ],
-                    )
-                  ],
-                  bottom: TabBar(
-                    tabs: _allPages.keys.map<Widget>(
-                            (CdutSpPage page) =>
-                            Tab(text: page.label, icon: Icon(page.iconData),)
-                    ).toList(),
-                  ),
-                ),
+                child: buildSliverAppBar()
               )
             ];
           },
-          body: TabBarView(
-              children: _allPages.keys.map<Widget>((CdutSpPage page) {
-                return SafeArea(
-                  top: false,
-                  bottom: false,
-                  child: Builder(
-                    builder: (BuildContext context) {
-                      cdutSpPage=page;
-                      return CustomScrollView(
-                        key: PageStorageKey<CdutSpPage>(page),
-                        slivers: <Widget>[
-                          SliverOverlapInjector(
-                            handle: NestedScrollView
-                                .sliverOverlapAbsorberHandleFor(context),
-                          ),
-                          SliverGrid(
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                childAspectRatio: 0.9
-                            ),
-                            delegate: SliverChildBuilderDelegate(
-                                    (BuildContext context,int index){
-                                  final CdutSpCardData data=_allPages[page][index];
-                                  return Padding(
-                                    padding: const EdgeInsets.all(5.0),
-                                    child: _OpenContainerWrapper(
-                                      transitionType: _transitionType,
-                                      data: data,
-                                      closedBuilder: (BuildContext _,VoidCallback openContainer){
-                                        return _CardDataItem(page: page,
-                                          data: data,openContainer: openContainer,);
-                                      },
-                                    ),
-                                  );
-                                },
-                                childCount: _allPages[page].length
-                            ),
-                          )
-                        ],
-                      );
-                    },
-                  ),
-                );
-
-              }).toList()
-          ),
+          body: buildTabBarView()
         ),
-        floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.brush),
-          elevation: 8,
-          backgroundColor: cdutSpOrange900,
-          onPressed: (){
-            ShowPostPage(context, cdutSpPage);
-          },
-        ),
+        floatingActionButton: buildFloatingActionButton(),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         bottomNavigationBar: CdutSpBottomAppBar(color:cdutSpWhite,shape: CircularNotchedRectangle(),),
       ),
     );
   }
+  Widget buildFloatingActionButton(){
+    return FloatingActionButton(
+      child: Icon(Icons.brush),
+      elevation: 8,
+      backgroundColor: cdutSpOrange900,
+      onPressed: (){
+        ShowPostPage(context, cdutSpPage);
+      },
+    );
+  }
+  Widget buildSliverAppBar(){
+    return SliverAppBar(
+      expandedHeight: 160,
+      pinned: true,
+      backgroundColor: cdutSpBlue100,
+      automaticallyImplyLeading: false,
+      forceElevated: true,
+      centerTitle: true,
+      title: CdutSpBackdropTitle(
+          listenable:_controller.view
+      ),
+      leading: IconButton(
+        icon: AnimatedIcon(
 
+
+
+          icon: AnimatedIcons.close_menu,
+          progress: _controller.view,
+        ),
+        onPressed: _CdutSpToggleBackDropVisibility,
+      ),
+      actions: <Widget>[
+        PopupMenuButton(
+          icon: Icon(Icons.expand_more,color: cdutSpWhite,),
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+            const PopupMenuItem<String>(
+              child: ListTile(
+                leading: Icon(Icons.access_time),
+                title: Text('时间'),
+              ),
+            ),
+            const PopupMenuItem<String>(
+              child: ListTile(
+                leading: Icon(Icons.thumb_up),
+                title: Text('热度'),
+              ),
+            ),
+          ],
+        )
+      ],
+      bottom: TabBar(
+        tabs: _allPages.keys.map<Widget>(
+                (CdutSpPage page) =>
+                Tab(text: page.label, icon: Icon(page.iconData),)
+        ).toList(),
+      ),
+    );
+  }
+  Widget buildTabBarView(){
+    return TabBarView(
+        children: _allPages.keys.map<Widget>((CdutSpPage page) {
+          return SafeArea(
+            top: false,
+            bottom: false,
+            child: Builder(
+              builder: (BuildContext context) {
+                cdutSpPage=page;
+                return CustomScrollView(
+                  key: PageStorageKey<CdutSpPage>(page),
+                  slivers: <Widget>[
+                    SliverOverlapInjector(
+                      handle: NestedScrollView
+                          .sliverOverlapAbsorberHandleFor(context),
+                    ),
+                    SliverGrid(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.9
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                              (BuildContext context,int index){
+                            final CdutSpCardData data=_allPages[page][index];
+                            return Padding(
+                              padding: const EdgeInsets.all(5.0),
+                              child: _OpenContainerWrapper(
+                                transitionType: _transitionType,
+                                data: data,
+                                closedBuilder: (BuildContext _,VoidCallback openContainer){
+                                  return _CardDataItem(page: page,
+                                    data: data,openContainer: openContainer,);
+                                },
+                              ),
+                            );
+                          },
+                          childCount: _allPages[page].length
+                      ),
+                    )
+                  ],
+                );
+              },
+            ),
+          );
+
+        }).toList()
+    );
+  }
   void ShowPostPage(BuildContext context,CdutSpPage page){
     Navigator.push(context, MaterialPageRoute(
       builder: (BuildContext context)=>PostPage(
@@ -587,7 +610,8 @@ class CdutSpBackdropTitle extends AnimatedWidget{
           ).value,
           child: Text("我的发布",
               style:GoogleFonts.zCOOLXiaoWei(
-                fontSize: 25
+                fontSize: 25,
+                color: cdutSpWhite
               )
             ),
         ),
@@ -598,7 +622,8 @@ class CdutSpBackdropTitle extends AnimatedWidget{
           ).value,
           child: Text('成理表白墙',
               style:GoogleFonts.zCOOLXiaoWei(
-              fontSize: 25
+              fontSize: 25,
+                  color: cdutSpWhite
           )
           ),
         )

@@ -5,6 +5,7 @@ import 'package:cdut_social_platform_app/home.dart';
 import 'package:cdut_social_platform_app/login.dart';
 import 'package:cdut_social_platform_app/post.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'tools/cut_corners_border.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'color.dart';
@@ -13,11 +14,10 @@ class cdutSocialPlatformApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: LoginPage(),
       initialRoute: '/login',
       routes: {
-        '/login':(context)=>LoginPage(),
         '/home':(context)=>HomePage(),
+        '/login':(context)=>LoginPage(),
         '/register':(context)=>RegisterPage(),
       },
       //onGenerateRoute: _getRoute,
@@ -36,6 +36,8 @@ class cdutSocialPlatformApp extends StatelessWidget {
         fullscreenDialog: true
     );
   }
+
+
 }
 
 

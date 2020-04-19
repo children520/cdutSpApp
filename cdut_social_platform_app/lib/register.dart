@@ -21,8 +21,9 @@ class _RegisterPageState extends State<RegisterPage>{
   bool _autoValidate=false;
   bool _formWasEdited=false;
   Future<User> _futureUser;
-  String collage="地球科学学院";
-  User user=User();
+  //默认学院和性别
+  User _user=User(sex: "Boy",collage: "地球科学学院");
+
   final GlobalKey<ScaffoldState> _scaffoldKey=GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> _formKey=GlobalKey<FormState>();
   final GlobalKey<FormFieldState<String>> _passwordFieldKey=GlobalKey<FormFieldState<String>>();
@@ -81,7 +82,8 @@ class _RegisterPageState extends State<RegisterPage>{
           Radio<int>(
               value: 0,
               groupValue: RadioValue,
-              onChanged:handleRadioValueChanged
+              onChanged:handleRadioValueChanged,
+              
           ),
           SizedBox(width: 20,),
           Text('Girl',
@@ -101,8 +103,7 @@ class _RegisterPageState extends State<RegisterPage>{
     setState(() {
       RadioValue=value;
     });
-    RadioValue==0?user.sex="Boy":user.sex="Girl";
-
+    RadioValue==0?_user.sex="Boy":_user.sex="Girl";
   }
 
   String _ValidateUserName(String value) {
@@ -126,11 +127,16 @@ class _RegisterPageState extends State<RegisterPage>{
     if(passwordField.value.length<=7){
       return '密码长度至少为8个字符';
     }
-    if(passwordField.value==null||passwordField.value.isEmpty){
-      return '密码未输入';
-    }
     if(passwordField.value!=value){
       return '密码不匹配';
+    }
+    return null;
+  }
+  String _ValidateEmail(String value){
+    _formWasEdited=true;
+    final RegExp phoneExp=RegExp('\^[1-9][0-9]{4,}@qq.com\$');
+    if(!phoneExp.hasMatch(value)){
+      return '邮箱格式不正确';
     }
     return null;
   }
@@ -147,40 +153,33 @@ class _RegisterPageState extends State<RegisterPage>{
     return null;
   }
 
-  void _handleRegisted() {
 
+  void _handleRegisted() {
     final FormState formState=_formKey.currentState;
     if(!formState.validate()){
       _autoValidate=true;
       //showInSnackBar('请更正提交之前的错误！');
     }else{
-      _ValidateCollage();
-      _ValidateSex();
-      user.password='123456';
+
       formState.save();
       showInSnackBar('正在注册......');
       Future.delayed(Duration(seconds: 2),(){
         setState(() {
-          _futureUser=createUser(user);
+          print(_user.userName);
+          print(_user.sex);
+          print(_user.collage);
+          print(_user.password);
+          print(_user.email);
+          print(_user.phoneNumber);
+          _futureUser=createUser(_user);
         });
       });
-
-      //children修改为user
 
     }
     //final FormState
   }
-  void  _ValidateCollage(){
-    if(user.collage==null){
-      user.collage=collage;
-    }
-  }
-  void _ValidateSex(){
-    if(user.sex==null){
-      user.sex="Boy";
-    }
-
-  }
+  
+  
 
   void showInSnackBar(String value){
     _scaffoldKey.currentState..removeCurrentSnackBar()..showSnackBar(SnackBar(
@@ -207,7 +206,7 @@ class _RegisterPageState extends State<RegisterPage>{
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         Text(
-          collage,
+          _user.collage,
           style: TextStyle(
               color: cdutSpBlue100
           ),
@@ -248,12 +247,10 @@ class _RegisterPageState extends State<RegisterPage>{
         ),
         onConfirm: (Picker picker, List value) {
           setState(() {
-            user.collage=picker.getSelectedValues()[0];
-            collage=user.collage;
+            _user.collage=picker.getSelectedValues()[0];
           });
-          print(value.toString());
           print(picker.getSelectedValues()[0]);
-        }
+        },
     ).showModal(context);
   }
 
@@ -267,14 +264,15 @@ class _RegisterPageState extends State<RegisterPage>{
           validator: _ValidatePassword,
           onFieldSubmitted: (String value) {
             setState(() {
-              user.password = value;
+              _user.password = value;
             });
           },
         ),
+
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: TextFormField(
-            enabled: user.password!=null&&user.password.isNotEmpty,
+            enabled: _user.password!=null&&_user.password.isNotEmpty,
             decoration: InputDecoration(
                 labelText: '验证你的密码:',
                 prefixIcon: Padding(
@@ -289,89 +287,51 @@ class _RegisterPageState extends State<RegisterPage>{
                 )
             ),
             obscureText: true,
-            initialValue: "12345678",
             validator: _ValidatePassword,
           ),
         ),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: TextFormField(
-                initialValue: '13008181759',
-                decoration: InputDecoration(
-                    hintText: '输入手机号码:',
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 10, 0),
-                      child: Icon(
-                          Icons.phone
-                      ),
-                    ),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10)
-                    ),
-
+        TextFormField(
+          decoration: InputDecoration(
+              hintText: '输入你的QQ邮箱:',
+              prefixIcon: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 10, 0),
+                child: Icon(
+                    Icons.email
                 ),
-                validator: _ValidatePhoneNumber,
-                onFieldSubmitted: (String value) {
-                  setState(() {
-                    user.phoneNumber = value;
-                  });
-                },
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-              child: RaisedButton(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Text(
-                    '发送验证码',
-                  ),
-                ),
-                onPressed: (){
-                },
-                //padding: EdgeInsets.symmetric(vertical:5,horizontal: 20),
-
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10)
               ),
-            ),
-          ],
+          ),
+          validator: _ValidateEmail,
+          onFieldSubmitted: (String value) {
+            setState(() {
+              _user.email = value;
+            });
+          },
         ),
         SizedBox(height: 10,),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: TextField(
-                decoration: InputDecoration(
-                    hintText: '输入验证码:',
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 10, 0),
-                      child: Icon(
-                          Icons.verified_user
-                      ),
-                    ),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10)
-                    )
+        TextFormField(
+          validator: _ValidatePhoneNumber,
+          decoration: InputDecoration(
+              hintText: '输入你的手机号码:',
+              prefixIcon: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 10, 0),
+                child: Icon(
+                    Icons.phone
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-              child: FlatButton(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Text(
-                    '输入验证码',
-                    style: TextStyle(
-                      color: cdutSpBlue100,
-                    ),
-                  ),
-                ),
-                //padding: EdgeInsets.symmetric(vertical:5,horizontal: 20),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10)
+              ),
 
-              ),
-            ),
-          ],
+          ),
+          onFieldSubmitted: (String value){
+            setState(() {
+              _user.phoneNumber=value;
+            });
+
+          },
         ),
       ],
     );
@@ -424,10 +384,8 @@ class _RegisterPageState extends State<RegisterPage>{
                       size: 20,
                     ),
                   ),
-                  onSaved: (String value) {user.userName= value;},
+                  onSaved: (String value) {_user.userName= value;},
                   validator: _ValidateUserName,
-                  initialValue: 'children',
-
                 ),
               ),
               BuildRadio()
@@ -459,6 +417,9 @@ class _RegisterPageState extends State<RegisterPage>{
     );
   }
   Future<User> createUser(User user) async{
+    var returnResult;
+    returnResult['userName']=user.userName;
+    returnResult['password']=user.password;
     final http.Response response= await http.Client().post(
       'http://10.0.2.2:8080/user/registration',
       headers: <String,String>{
@@ -469,26 +430,32 @@ class _RegisterPageState extends State<RegisterPage>{
         'password':user.password,
         'collage':user.collage,
         'sex':user.sex,
+        'email':user.email,
         'phoneNumber':user.phoneNumber
       }),
     );
+    print(response.body);
+    print(response.statusCode);
     Map<String,dynamic> responseJson=json.decode(response.body);
     if(response.statusCode==200){
       showInSnackBar('用户'+responseJson['userName']+'注册成功，即将跳转到登陆页面');
       Future.delayed(Duration(seconds: 2),(){
-        //Navigator.pop(context, 'children');
+        Navigator.pop(context, returnResult);
       });
     }else{
-
       String message=responseJson['message'];
       showInSnackBar(message);
       //throw Exception('注册失败');
     }
   }
-  Future<http.Response> searchUserIsRepeated(String userName,String phoneNumber) async{
-    String url='http://10.0.2.2:8080/user/';
-    if(userName.isNotEmpty){
-      url=url+'userName/'+userName;
+  void _sendToVerificationCode(){
+
+  }
+  /*
+  Future<http.Response> searchUserIsRepeated(String _userName,String phoneNumber) async{
+    String url='http://10.0.2.2:8080/_user/';
+    if(_userName.isNotEmpty){
+      url=url+'_userName/'+_userName;
     }
     if(phoneNumber.isNotEmpty){
       url=url+'phoneNumber/'+phoneNumber;
@@ -503,7 +470,7 @@ class _RegisterPageState extends State<RegisterPage>{
     if(response.statusCode==200){
 
     }else{
-      if(userName.isEmpty){
+      if(_userName.isEmpty){
         showInSnackBar('手机号已注册');
       }
       else{
@@ -512,6 +479,8 @@ class _RegisterPageState extends State<RegisterPage>{
     }
     return response;
   }
+
+   */
 }
 
 
@@ -541,7 +510,6 @@ class _PasswordFieldState extends State<PasswordField>{
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      initialValue: '12345678',
       key: widget.fieldKey,
       obscureText: _obsucreText,
       onSaved: widget.onSaved,

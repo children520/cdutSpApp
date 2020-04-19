@@ -1,19 +1,33 @@
+import 'dart:convert';
+import 'package:cdut_social_platform_app/model/User.dart';
 import 'package:cdut_social_platform_app/register.dart';
 import 'package:cdut_social_platform_app/color.dart';
 import 'package:cdut_social_platform_app/home.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 class LoginPage extends StatefulWidget {
   static const routeName = '/login';
+
   @override
   _LoginPageState createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  String result='';
+  var result=Map();
+  final GlobalKey<ScaffoldState> _scaffoldKey=GlobalKey<ScaffoldState>();
+  final GlobalKey<FormState> _formKey=GlobalKey<FormState>();
+  bool _autoValidate=false;
+  Future<http.Response> _futureUser;
+  String userName;
   @override
   void initState() {
     super.initState();
+    //getUserState();
+  }
+  Future<String> getUserState() async{
+
   }
   @override
   void dispose() {
@@ -22,19 +36,24 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       body: Builder(
         builder:(context)=> SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: ListView(
-                children: <Widget>[
-                  SizedBox(height: 30),
-                  _BuildTitle(),
-                  SizedBox(height: 40,),
-                  _BuildTextFormField(),
-                  SizedBox(height: 10,),
-                  _BuildButtonBar(context)
-                ],
+            child: Form(
+              key: _formKey,
+              autovalidate: _autoValidate,
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: ListView(
+                  children: <Widget>[
+                    SizedBox(height: 30),
+                    _BuildTitle(),
+                    SizedBox(height: 40,),
+                    _BuildTextFormField(),
+                    SizedBox(height: 10,),
+                    _BuildButtonBar(context)
+                  ],
+                ),
               ),
             ),
           ),
@@ -42,11 +61,15 @@ class _LoginPageState extends State<LoginPage> {
     );
 
   }
+
   _NavigateRegisterRoute(BuildContext context) async{
+
     result =await Navigator.push(context,
       MaterialPageRoute(builder: (context)=>RegisterPage()),
     );
+    print(result);
   }
+
 
   Widget _BuildButtonBar(BuildContext context){
     return ButtonBar(
@@ -74,7 +97,10 @@ class _LoginPageState extends State<LoginPage> {
               child: Text(
                 '登录',
               ),
-              onPressed: (){
+              onPressed: () {
+                _handleLogin(context);
+
+                /*
                 Scaffold.of(context).showSnackBar(
                     SnackBar(content: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -91,7 +117,7 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     ),duration: Duration(seconds: 2),)
                 );
-                /*
+
                 Scaffold.of(context)
                   ..removeCurrentSnackBar()
                       ..showSnackBar(
@@ -111,10 +137,12 @@ class _LoginPageState extends State<LoginPage> {
                     ),duration: Duration(seconds: 4),)
                 );
 
-                 */
+
+
                 Future.delayed(Duration(seconds: 2),(){
-                  Navigator.pushNamed(context, HomePage.routeName);
+
                 });
+                */
               },
             )
           ],
@@ -132,9 +160,12 @@ class _LoginPageState extends State<LoginPage> {
           validator: _ValidateUserName,
           controller: TextEditingController.fromValue(
               TextEditingValue(
-                  text: result==null?'':result
+                  text: result['userName']==null?'':result['userName']
               )
           ),
+          onFieldSubmitted: (String value){
+            result['userName']=value;
+          },
         ),
         SizedBox(height: 10,),
         CdutSpTextField(
@@ -144,9 +175,12 @@ class _LoginPageState extends State<LoginPage> {
           validator: _ValidatePassword,
           controller: TextEditingController.fromValue(
               TextEditingValue(
-                  text: result==null?'':result
+                  text: result['password']==null?'':result['password']
               )
           ),
+          onFieldSubmitted: (String value){
+            result['password']=value;
+          },
         ),
       ],
     );
@@ -188,6 +222,91 @@ class _LoginPageState extends State<LoginPage> {
     }
     return null;
   }
+  void _handleLogin(BuildContext context){
+    final FormState formState=_formKey.currentState;
+    if(!formState.validate()){
+      _autoValidate=true;
+      //showInSnackBar('请更正提交之前的错误！');
+    }else {
+      formState.save();
+      showInSnackBar("正在登录......");
+      Future.delayed(Duration(seconds: 2),(){
+        setState(() {
+          _futureUser=userLogin(result['userName'], result['password']);
+        });
+        _futureUser.then((response){
+          Map<String,dynamic> responseJson=json.decode(response.body);
+          if(response.statusCode==200){
+            showInSnackBar(responseJson['userName']+'登录成功');
+            saveUserState(User.fromJson(responseJson)).then((_){
+              Future.delayed(Duration(seconds: 2),(){
+                Navigator.pushNamedAndRemoveUntil(context, HomePage.routeName,(route)=> route==null);
+              });
+            }).catchError((onError){
+              print(onError);
+            });
+          }else{
+            showInSnackBar(responseJson['message']);
+          }
+
+        });
+
+      });
+    }
+  }
+  Future<http.Response> userLogin(String userName,String password) async{
+    final http.Response response=await http.Client().post(
+      'http://10.0.2.2:8080/user/login',
+      headers: <String,String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String,String>{
+        'userName':userName,
+        'password':password,
+      }),
+    );
+
+    //Map<String,dynamic> responseJson=json.decode(response.body);
+    /*
+    if(response.statusCode==200){
+      showInSnackBar(responseJson['userName']+'登录成功');
+    }else{
+      showInSnackBar(responseJson['message']);
+    }
+
+     */
+    return response;
+  }
+
+  Future<String> saveUserState(User user) async{
+    SharedPreferences prefs=await SharedPreferences.getInstance();
+    prefs.setString('userName', user.userName);
+    prefs.setString('email', user.email);
+    prefs.setString('phoneNumber', user.phoneNumber);
+    prefs.setString('sex', user.sex);
+    prefs.setString('collage', user.collage);
+  }
+
+  void showInSnackBar(String value){
+    _scaffoldKey.currentState..removeCurrentSnackBar()..showSnackBar(SnackBar(
+      content: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Text(
+              value
+          ),
+          SizedBox(
+            height: 25,
+            width: 25,
+            child: CircularProgressIndicator(
+              backgroundColor: cdutSpBlue100,
+              valueColor: new AlwaysStoppedAnimation(cdutSpOrange900),
+            ),
+          )
+        ],
+      ),duration: Duration(seconds: 2),
+    ));
+  }
 }
 class CdutSpTextField extends StatelessWidget {
   CdutSpTextField({
@@ -198,7 +317,8 @@ class CdutSpTextField extends StatelessWidget {
     this.obscureText,
     this.iconData,
     this.controller,
-    this.validator
+    this.validator,
+    this.onFieldSubmitted
   }):super(key :key);
 
   final Color color;
@@ -208,7 +328,7 @@ class CdutSpTextField extends StatelessWidget {
   final IconData iconData;
   final TextEditingController controller;
   final hint;
-
+  final ValueChanged<String> onFieldSubmitted;
 
   @override
   Widget build(BuildContext context) {
@@ -235,6 +355,7 @@ class CdutSpTextField extends StatelessWidget {
       controller: controller,
       validator: validator,
       obscureText: obscureText==null?false:obscureText,
+      onFieldSubmitted: onFieldSubmitted,
     );
   }
 }
