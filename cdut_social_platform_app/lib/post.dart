@@ -1,4 +1,5 @@
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:cdut_social_platform_app/global.dart';
@@ -22,20 +23,56 @@ class PostPage extends StatefulWidget{
   }
 }
 class _PostPageState extends State<PostPage>{
-  static DateTime now=DateTime.now();
+  static DateTime now;
+  String formatDateStr;
+  Timer timer;
+  int milliSecond;
   CardMessage cardMessage=new CardMessage();
   bool _autoValidate=false;
-  String formatDateStr=formatDate(now, [mm, '\\', d,'\\',hh, ':', nn, ':', ' ', am]);
+  final GlobalKey<ScaffoldState> _scaffoldKey=GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> _formKey=GlobalKey<FormState>();
   @override
   void initState(){
+    now=DateTime.now();
+    milliSecond=now.millisecondsSinceEpoch;
+    formatDateStr=formatDate(now, [yyyy,'年',mm, '月', d,'号 ',hh, ':', nn,':',ss]);
+    startTimer();
     cardMessage.userName=Global.localUser.userName;
     super.initState();
   }
   @override
+  void deactivate() {
+    super.deactivate();
+  }
+  @override
+  void didUpdateWidget(PostPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+  }
+  @override
+  void dispose() {
+    super.dispose();
+    if(timer!=null){
+      timer.cancel();
+    }
+  }
+
+  void startTimer(){
+    const oneSecond=const Duration(seconds: 1);
+    timer= new Timer.periodic(oneSecond,(timer){
+      setState(() {
+        milliSecond+=1000;
+        formatDateStr=formatDate(DateTime.fromMillisecondsSinceEpoch(milliSecond), [yyyy,'年',mm, '月', d,'号 ',hh, ':', nn,':',ss]);
+      });
+    }
+    );
+
+  }
+  @override
   Widget build(BuildContext context) {
+
     //final CdutSpPage model =ModalRoute.of(context).settings.arguments;
     return Scaffold(
+      key: _scaffoldKey,
       body: Form(
         key: _formKey,
         child: CustomScrollView(
@@ -145,6 +182,7 @@ class _PostPageState extends State<PostPage>{
         )
     );
   }
+
   String _ValidateInputMessage(String value){
     if(value.length>140){
       return "超过字数范围";
@@ -162,21 +200,47 @@ class _PostPageState extends State<PostPage>{
       _autoValidate=true;
     }else{
       formState.save();
-      commitMessage(cardMessage);
+      commitMessage(cardMessage,context);
     }
   }
-  Future<String> commitMessage(CardMessage cardMessage) async{
-    print(cardMessage.message);
+  void initCardDefaultMessage(CardMessage cardMessage){
+    cardMessage.label=widget.page.label;
+    cardMessage.likeNum=0;
+    cardMessage.date=formatDateStr;
+  }
+  Future<String> commitMessage(CardMessage cardMessage,BuildContext context) async{
+    initCardDefaultMessage(cardMessage);
     final http.Response response=await http.Client().post(
-      'http://10.0.2.2:8080/user/commit',
+      'http://10.0.2.2:8080/card/commit',
       headers: <String,String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
-      body: jsonEncode(<String,String>{
+      body: jsonEncode(<String,dynamic>{
         'userName':cardMessage.userName,
         'message':cardMessage.message,
+        'label':cardMessage.label,
+        'likeNum':cardMessage.likeNum,
+        'date':cardMessage.date
       }),
     );
     print(response.body);
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
+      content: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Text(
+              response.body
+          ),
+          SizedBox(
+            height: 25,
+            width: 25,
+            child: CircularProgressIndicator(
+              backgroundColor: cdutSpBlue100,
+              valueColor: new AlwaysStoppedAnimation(cdutSpOrange900),
+            ),
+          )
+        ],
+      ),duration: Duration(seconds: 2),
+    ));
   }
 }
