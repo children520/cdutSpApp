@@ -13,6 +13,7 @@ import 'model/cdutSpPageModel.dart';
 import 'model/cdutSpCardDataModel.dart';
 import 'detail.dart';
 import 'backdrop.dart';
+import 'package:cdut_social_platform_app/global.dart';
 import 'dart:math' as math;
 const String _kGalleryAssetsPackage = 'flutter_gallery_assets';
 
@@ -107,6 +108,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   @override
   void initState(){
     super.initState();
+    
     _controller=AnimationController(duration: const Duration(microseconds: 300),value: 1,vsync: this);
   }
   @override

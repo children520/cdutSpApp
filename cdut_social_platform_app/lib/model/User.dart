@@ -16,4 +16,5 @@ class User{
         phoneNumber:json['phoneNumber']
     );
   }
+
 }

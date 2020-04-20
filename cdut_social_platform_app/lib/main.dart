@@ -1,28 +1,27 @@
+import 'package:cdut_social_platform_app/global.dart';
 import 'package:cdut_social_platform_app/home.dart';
 import 'package:cdut_social_platform_app/login.dart';
 import 'package:cdut_social_platform_app/register.dart';
 import 'package:flutter/material.dart';
-import 'package:cdut_social_platform_app/cdutSpApp.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 import 'color.dart';
 
 Future<void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
-  SharedPreferences prefs=await SharedPreferences.getInstance();
-  String userName=prefs.getString('userName');
-  debugPrint(userName);
-  runApp(MaterialApp(
-      home: userName == null ? LoginPage() : HomePage(),
+  Global.init().then((map){
+    runApp(MaterialApp(
+      home:  map['userName'] == null ? LoginPage() :HomePage(),
       routes: {
         '/home':(context)=>HomePage(),
         '/login':(context)=>LoginPage(),
         '/register':(context)=>RegisterPage(),
       },
-      //onGenerateRoute: _getRoute,
       theme: _cdutSpBlueTheme,
     )
-  );
+    );
+  });
+
 }
 final ThemeData _cdutSpBlueTheme = _buildCdutSpTheme();
 

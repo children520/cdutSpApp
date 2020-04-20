@@ -26,9 +26,6 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
     //getUserState();
   }
-  Future<String> getUserState() async{
-
-  }
   @override
   void dispose() {
     super.dispose();
@@ -62,13 +59,6 @@ class _LoginPageState extends State<LoginPage> {
 
   }
 
-  _NavigateRegisterRoute(BuildContext context) async{
-
-    result =await Navigator.push(context,
-      MaterialPageRoute(builder: (context)=>RegisterPage()),
-    );
-    print(result);
-  }
 
 
   Widget _BuildButtonBar(BuildContext context){
@@ -99,50 +89,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
               onPressed: () {
                 _handleLogin(context);
-
-                /*
-                Scaffold.of(context).showSnackBar(
-                    SnackBar(content: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text('正在登录......'),
-                        SizedBox(
-                            width: 25,
-                            height: 25,
-                            child: CircularProgressIndicator(
-                              backgroundColor: cdutSpBlue100,
-                              valueColor: new AlwaysStoppedAnimation(cdutSpOrange900),
-                            )
-                        )
-                      ],
-                    ),duration: Duration(seconds: 2),)
-                );
-
-                Scaffold.of(context)
-                  ..removeCurrentSnackBar()
-                      ..showSnackBar(
-                    SnackBar(content: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text('登录成功'),
-                        SizedBox(
-                            width: 25,
-                            height: 25,
-                            child: CircularProgressIndicator(
-                              backgroundColor: cdutSpBlue100,
-                              valueColor: new AlwaysStoppedAnimation(cdutSpOrange900),
-                            )
-                        )
-                      ],
-                    ),duration: Duration(seconds: 4),)
-                );
-
-
-
-                Future.delayed(Duration(seconds: 2),(){
-
-                });
-                */
               },
             )
           ],
@@ -222,6 +168,15 @@ class _LoginPageState extends State<LoginPage> {
     }
     return null;
   }
+
+  _NavigateRegisterRoute(BuildContext context) async{
+
+    result =await Navigator.push(context,
+      MaterialPageRoute(builder: (context)=>RegisterPage()),
+    );
+    print(result);
+  }
+
   void _handleLogin(BuildContext context){
     final FormState formState=_formKey.currentState;
     if(!formState.validate()){
@@ -265,16 +220,6 @@ class _LoginPageState extends State<LoginPage> {
         'password':password,
       }),
     );
-
-    //Map<String,dynamic> responseJson=json.decode(response.body);
-    /*
-    if(response.statusCode==200){
-      showInSnackBar(responseJson['userName']+'登录成功');
-    }else{
-      showInSnackBar(responseJson['message']);
-    }
-
-     */
     return response;
   }
 
