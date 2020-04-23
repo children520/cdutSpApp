@@ -4,13 +4,16 @@ class CardMessage{
   String label;
   int likeNum;
   String date;
-
+  String collage;
+  int id;
   CardMessage({
     this.userName,
     this.message,
     this.label,
     this.date,
-    this.likeNum
+    this.likeNum,
+    this.collage,
+    this.id
   });
   factory CardMessage.fromjson(Map<String,dynamic> json){
     return CardMessage(
@@ -18,7 +21,9 @@ class CardMessage{
       message: json['message'],
       label: json['label'],
       date: json['date'],
-      likeNum: json['likeNum']
+      likeNum: json['likeNum'],
+      collage: json['collage'],
+      id: json['id']
     );
   }
 }

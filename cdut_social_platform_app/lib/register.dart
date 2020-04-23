@@ -417,7 +417,7 @@ class _RegisterPageState extends State<RegisterPage>{
     );
   }
   Future<User> createUser(User user) async{
-    var returnResult;
+    Map<String,dynamic> returnResult=new Map();
     returnResult['userName']=user.userName;
     returnResult['password']=user.password;
     final http.Response response= await http.Client().post(

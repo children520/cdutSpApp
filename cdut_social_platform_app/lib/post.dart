@@ -37,7 +37,10 @@ class _PostPageState extends State<PostPage>{
     milliSecond=now.millisecondsSinceEpoch;
     formatDateStr=formatDate(now, [yyyy,'年',mm, '月', d,'号 ',hh, ':', nn,':',ss]);
     startTimer();
-    cardMessage.userName=Global.localUser.userName;
+    Global.init().then((map){
+      cardMessage.userName=Global.localUser.userName;
+      cardMessage.collage=Global.localUser.collage;
+    });
     super.initState();
   }
   @override
@@ -220,27 +223,42 @@ class _PostPageState extends State<PostPage>{
         'message':cardMessage.message,
         'label':cardMessage.label,
         'likeNum':cardMessage.likeNum,
-        'date':cardMessage.date
+        'date':cardMessage.date,
+        'collage':cardMessage.collage
       }),
     );
     print(response.body);
+    showSnackBar("正在发布......",true,2);
+    Future.delayed(Duration(seconds: 2),(){
+      showSnackBar(response.body,false,4);
+    });
+
+  }
+  void showSnackBar(String val,bool isCir,int sec){
     _scaffoldKey.currentState.showSnackBar(SnackBar(
       content: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           Text(
-              response.body
+             val
           ),
-          SizedBox(
+          isCir?SizedBox(
             height: 25,
             width: 25,
             child: CircularProgressIndicator(
               backgroundColor: cdutSpBlue100,
               valueColor: new AlwaysStoppedAnimation(cdutSpOrange900),
-            ),
-          )
+            ) ,
+          ):SizedBox(height:25,child: FlatButton(
+              child:Text('确认',
+                style: TextStyle(
+                  color: cdutSpBlue100,
+                ),),
+              onPressed: (){
+                _scaffoldKey.currentState.removeCurrentSnackBar();
+              }))
         ],
-      ),duration: Duration(seconds: 2),
+      ),duration: Duration(seconds: sec),
     ));
   }
 }

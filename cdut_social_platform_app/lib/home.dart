@@ -1,7 +1,12 @@
 
+import 'dart:async';
+import 'dart:convert';
 import 'dart:ffi';
+import 'dart:math';
 import 'package:animations/animations.dart';
+import 'package:cdut_social_platform_app/Overscroll.dart';
 import 'package:cdut_social_platform_app/login.dart';
+import 'package:cdut_social_platform_app/model/CardMessage.dart';
 import 'package:cdut_social_platform_app/post.dart';
 import 'package:cdut_social_platform_app/register.dart';
 import 'package:flutter/cupertino.dart';
@@ -12,83 +17,85 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'model/cdutSpPageModel.dart';
 import 'model/cdutSpCardDataModel.dart';
 import 'detail.dart';
+import 'package:http/http.dart' as http;
 import 'backdrop.dart';
 import 'package:cdut_social_platform_app/global.dart';
 import 'dart:math' as math;
 const String _kGalleryAssetsPackage = 'flutter_gallery_assets';
 
 
-final Map<CdutSpPage,List<CdutSpCardData>> _allPages=<CdutSpPage,List<CdutSpCardData>>{
+/*final Map<CdutSpPage,List<CdutSpCardData>> _allPages=<CdutSpPage,List<CdutSpCardData>>{
   CdutSpPage(label: '表白',iconData: Icons.favorite,color: cdutSpRed):<CdutSpCardData>[
-    const CdutSpCardData(
+    *//*const CdutSpCardData(
       label: '表白',
-      name: 'xiaoju',
+      userName: 'xiaoju',
       college: '信科院',
-      content: '发哈回复哈哈发动i发方法都i发货发哈回复哈哈发哦配合大佛哈佛好好奋斗发哈合法化的考虑哈夫里哈反恐局发发汗佛啊的肌肤俩号的饭卡很多能否看到看风景 放假啊就放假啊打飞机啊解放军建瓯老师发来的花肤俩号的饭卡很多能否看到看风景肤俩号的饭卡很多能否看到看风景肤俩号的饭卡很多能否看到看风景肤俩号的饭卡很多能否看到看风景肤俩号的饭卡很多能否看到看风景肤俩号的饭卡很多能否看到看风景肤俩号的饭卡很多能否看到看风景肤俩号的饭卡很多能否看到看风景肤俩号的饭卡很多能否看到看风景肤俩号的饭卡很多能否看到看风景',
+      message: '发哈回复哈哈发动i发方法都i发货发哈回复哈哈发哦配合大佛哈佛好好奋斗发哈合法化的考虑哈夫里哈反恐局发发汗佛啊的肌肤俩号的饭卡很多能否看到看风景 放假啊就放假啊打飞机啊解放军建瓯老师发来的花肤俩号的饭卡很多能否看到看风景肤俩号的饭卡很多能否看到看风景肤俩号的饭卡很多能否看到看风景肤俩号的饭卡很多能否看到看风景肤俩号的饭卡很多能否看到看风景肤俩号的饭卡很多能否看到看风景肤俩号的饭卡很多能否看到看风景肤俩号的饭卡很多能否看到看风景肤俩号的饭卡很多能否看到看风景肤俩号的饭卡很多能否看到看风景',
       imageAsset: 'assets/logo.png',
       //imageAssetPackage: _kGalleryAssetsPackage,
-      like: 1,
-      time: '2/28/5:38',
+      likeNum: 1,
+      date: '2/28/5:38',
     ),
     const CdutSpCardData(
-        name: 'xiaoju',
+        userName: 'xiaoju',
           label: '表白',
         college: '信科院',
-        content: '发哈回复哈哈发动i发方法都i发货',
+        message: '发哈回复哈哈发动i发方法都i发货',
         imageAsset: 'assets/logo.png',
         //imageAssetPackage: _kGalleryAssetsPackage,
-        like: 1,
-        time: '2/28/5:38',
+        likeNum: 1,
+        date: '2/28/5:38',
     ),
     const CdutSpCardData(
-        name: 'xiaoju',
+        userName: 'xiaoju',
         college: '信科院',
-        content: '发哈回复哈哈发动i发方法都i发货',
+        message: '发哈回复哈哈发动i发方法都i发货',
         imageAsset: 'assets/logo.png',
         label: '表白',
 
         //imageAssetPackage: _kGalleryAssetsPackage,
-        like: 1,
-         time: '2/28/5:38',
+        likeNum: 1,
+         date: '2/28/5:38',
     ),
     const CdutSpCardData(
-        name: 'xiaoju',
+        userName: 'xiaoju',
         label: '表白',
         college: '信科院',
-        content: '发哈回复哈哈发动i发方法都i发货',
+        message: '发哈回复哈哈发动i发方法都i发货',
         imageAsset: 'assets/logo.png',
 
         //imageAssetPackage: _kGalleryAssetsPackage,
-        like: 1,
-        time: '2/28/5:38',
-    )
+        likeNum: 1,
+        date: '2/28/5:38',
+    )*//*
   ],
   CdutSpPage(label: '寻物',iconData: Icons.search,color: cdutSpBlue100):<CdutSpCardData>[
-    const CdutSpCardData(
-        name: 'xiaoju',
+    *//*const CdutSpCardData(
+        userName: 'xiaoju',
         label: '寻物',
         college: '信科院',
-        content: '丢失放假啊回复哈烦的返还话费',
+        message: '丢失放假啊回复哈烦的返还话费',
         imageAsset: 'assets/logo.png',
         //imageAssetPackage: _kGalleryAssetsPackage,
-        like: 1,
-      time: '2/28/5:38',
-    )
+        likeNum: 1,
+      date: '2/28/5:38',
+    )*//*
   ],
   CdutSpPage(label: '吐槽',iconData: Icons.comment,color: cdutSpOrange900):<CdutSpCardData>[
-    const CdutSpCardData(
-        name: 'xiaoju',
+     *//*CdutSpCardData(
+        userName: 'xiaoju',
         label: '吐槽',
         college: '信科院',
-        time: '2/28/5:38',
-        content: '发哈回复哈哈发动i发方法都i发货',
+        date: '2/28/5:38',
+        message: '发哈回复哈哈发动i发方法都i发货',
         imageAsset: 'assets/logo.png',
         //imageAssetPackage: _kGalleryAssetsPackage,
-        like: 1
-    )
+        likeNum: 1
+    )*//*
   ],
 
-};
+};*/
+
 class HomePage extends StatefulWidget {
   static const routeName = '/home';
   @override
@@ -96,19 +103,35 @@ class HomePage extends StatefulWidget {
     return _HomePageState();
   }
 }
-
+List<CardMessage> favoriteCardMessageList=List();
+List<CardMessage> searchCardMessageList=List();
+List<CardMessage> commentCardMessageList=List();
+List<int> idList=List();
+final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
+class RIKeys {
+  static final riKey1 = const Key('__RIKEY1__');
+  static final riKey2 = const Key('__RIKEY2__');
+  static final riKey3 = const Key('__RIKEY3__');
+}
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
   ContainerTransitionType _transitionType = ContainerTransitionType.fade;
   final GlobalKey _backdropKey=GlobalKey(debugLabel: 'Backdrop');
   AnimationController _controller;
   Animation<RelativeRect> _layerAnimation;
   CdutSpPage cdutSpPage;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   String userName;
+  final Map<CdutSpPage,List<CardMessage>> _allPages=<CdutSpPage,List<CardMessage>>{
+    CdutSpPage(label: '表白',iconData: Icons.favorite,color: cdutSpRed):favoriteCardMessageList,
+    CdutSpPage(label: '寻物',iconData: Icons.search,color: cdutSpBlue100):searchCardMessageList,
+    CdutSpPage(label: '吐槽',iconData: Icons.comment,color: cdutSpOrange900):commentCardMessageList,
+  };
 
   @override
   void initState(){
     super.initState();
-    
+    getAllCardMessage();
+    //removeUserState();
     _controller=AnimationController(duration: const Duration(microseconds: 300),value: 1,vsync: this);
   }
   @override
@@ -116,20 +139,43 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _controller.dispose();
     print("dispose");
     super.dispose();
-
+  }
+  void showInSnackBar(String value){
+    _scaffoldKey.currentState..removeCurrentSnackBar()..showSnackBar(SnackBar(
+      content: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Text(
+              value
+          ),
+          SizedBox(
+            height: 25,
+            width: 25,
+            child: CircularProgressIndicator(
+              backgroundColor: cdutSpBlue100,
+              valueColor: new AlwaysStoppedAnimation(cdutSpOrange900),
+            ),
+          )
+        ],
+      ),duration: Duration(seconds: 2),
+    ));
   }
 
-  void removeUserState() async{
-    SharedPreferences preferences=await SharedPreferences.getInstance();
-    preferences.remove("userName");
+  Future<void> _handleRefresh(){
+    final Completer<void> completer=Completer<void>();
+    showInSnackBar("正在刷新");
+    completer.complete();
+    return completer.future.then((_){
+      getAllCardMessage();
+    });
   }
-
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: _allPages.length,
       child: Scaffold(
+        key: _scaffoldKey,
         body: NestedScrollView(
           headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
             return <Widget>[
@@ -144,10 +190,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         ),
         floatingActionButton: buildFloatingActionButton(),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        bottomNavigationBar: CdutSpBottomAppBar(color:cdutSpWhite,shape: CircularNotchedRectangle(),),
+        bottomNavigationBar: CdutSpBottomAppBar(color:cdutSpWhite,shape: CircularNotchedRectangle(),callback: getAllCardMessage,)
       ),
     );
   }
+
   Widget buildFloatingActionButton(){
     return FloatingActionButton(
       child: Icon(Icons.brush),
@@ -158,6 +205,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       },
     );
   }
+
   Widget buildSliverAppBar(){
     return SliverAppBar(
       expandedHeight: 160,
@@ -171,8 +219,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ),
       leading: IconButton(
         icon: AnimatedIcon(
-
-
 
           icon: AnimatedIcons.close_menu,
           progress: _controller.view,
@@ -229,7 +275,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                       ),
                       delegate: SliverChildBuilderDelegate(
                               (BuildContext context,int index){
-                            final CdutSpCardData data=_allPages[page][index];
+                            final CardMessage data=_allPages[page][index];
                             return Padding(
                               padding: const EdgeInsets.all(5.0),
                               child: _OpenContainerWrapper(
@@ -254,6 +300,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         }).toList()
     );
   }
+
+
   void ShowPostPage(BuildContext context,CdutSpPage page){
     Navigator.push(context, MaterialPageRoute(
       builder: (BuildContext context)=>PostPage(
@@ -352,126 +400,108 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ),
     );
   }
-}
-
-class _OpenContainerWrapper extends StatelessWidget {
-  const _OpenContainerWrapper({
-    this.closedBuilder,
-    this.transitionType,
-    this.data
-  });
-
-  final OpenContainerBuilder closedBuilder;
-  final ContainerTransitionType transitionType;
-  final CdutSpCardData data;
-
-  @override
-  Widget build(BuildContext context) {
-    return OpenContainer(
-      closedElevation: 2,
-      transitionType: transitionType,
-      openBuilder: (BuildContext context, VoidCallback _) {
-        return DetailsPage(detailData: data,);
-      },
-      tappable: true,
-      closedBuilder: closedBuilder,
+  Future<http.Response> getAllCardMessage() async{
+    final http.Response response=await http.Client().get(
+        'http://10.0.2.2:8080/card/all'
     );
+    initAllCardMessage(response.body);
+    print(response.body);
+    return response;
+  }
+  void initAllCardMessage(String response){
+    CardMessage cardMessage;
+    for(var val in json.decode(response)){
+      cardMessage=CardMessage.fromjson(val);
+      print(cardMessage.id);
+      if(!idList.contains(cardMessage.id)){
+        idList.add(cardMessage.id);
+        switch(val['label']){
+          case '表白':
+            setState(() {
+              favoriteCardMessageList.add(cardMessage);
+            });
+
+            break;
+          case '寻物':
+            setState(() {
+              searchCardMessageList.add(cardMessage);
+            });
+
+            break;
+          case '吐槽':
+            setState(() {
+              commentCardMessageList.add(cardMessage);
+            });
+
+            break;
+        }
+      }
+    }
   }
 }
-class _CardDataItem extends StatelessWidget{
-  const _CardDataItem({Key key,this.page,this.data,this.openContainer}):super (key :key);
-  final CdutSpPage page;
-  final CdutSpCardData data;
-  final VoidCallback openContainer;
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: openContainer,
-      customBorder: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20)
-      ),
-      //borderRadius: BorderRadius.circular(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
-          AspectRatio(
-            child: Image.asset(data.imageAsset,
-              //package:data.imageAssetPackage,
-              fit: BoxFit.fitWidth,),
-            aspectRatio: 24/13,
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 3, 8, 8),
-              child: Column(
-                children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      Text(data.college+'-',
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: cdutSpBlue100,
-                            fontWeight: FontWeight.w500
-                        ),
-                      ),
-                      Text(
-                        data.name,
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: cdutSpBlue100,
-                            fontWeight: FontWeight.w500
-                        ),
-                      ),
-                    ],
-                  ),
-                  //SizedBox(height: 10,),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Text(data.content,
-                        style: TextStyle(
-                            fontSize: 10
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 5,),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Icon(page.iconData,color: page.color,size: 16,),
-                      Text(
-                        data.time,
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold
-                        ),
-                      ),
-                      LikeWidget()
-
-
-                    ],
-                  )
-                ],
-              ),
-            ),
-          )
-        ],
-      ),
-    );
-  }
+void removeUserState() async{
+  SharedPreferences preferences=await SharedPreferences.getInstance();
+  preferences.remove("userName");
 }
+Widget buildCdutSpBottomAppBar(BuildContext context,Color color,NotchedShape shape){
+  return  BottomAppBar(
+    color: color,
+    shape: shape,
+    child: Row(children: <Widget>[
+      IconButton(
+        icon: const Icon(Icons.settings, semanticLabel: 'Show bottom sheet',color: cdutSpGrey,),
+        onPressed: () {
+          showModalBottomSheet<void>(
+            context: context,
+            builder: (BuildContext context) => _CdutSpDrawer(),
+          );
+        },
+      ),
+      const Expanded(child: SizedBox()),
+      IconButton(
+        icon: const Icon(Icons.search, semanticLabel: 'show search action',color: cdutSpGrey),
+        onPressed: () {
+          Scaffold.of(context).showSnackBar(
+            const SnackBar(content: Text('寻找'),duration: Duration(seconds: 2)),
+          );
+        },
+      ),
+      IconButton(
+        icon: Icon(
+            Theme.of(context).platform == TargetPlatform.iOS
+                ? Icons.more_horiz
+                : Icons.more_vert,
+            semanticLabel: 'Show menu actions', color: cdutSpGrey
+        ),
+        onPressed: () {
+          Navigator.push(context,MaterialPageRoute(
+            builder: (BuildContext context)=>OverscrollDemo()
+            ,
+          ));
+          Scaffold.of(context).showSnackBar(
+            const SnackBar(content: Text('菜单栏'),duration: Duration(seconds: 2)),
+          );
+        },
+      ),
+      IconButton(
+        icon: const Icon(Icons.refresh,color: cdutSpGrey),
+        onPressed: () {
 
-
+        },
+      ),
+    ]),
+  );
+}
 class CdutSpBottomAppBar extends StatelessWidget {
   const CdutSpBottomAppBar({
     this.color,
     this.shape,
+    this.callback
   });
 
   final Color color;
   final NotchedShape shape;
+  final VoidCallback callback;
 
   static final List<FloatingActionButtonLocation> kCenterLocations = <FloatingActionButtonLocation>[
     FloatingActionButtonLocation.centerDocked,
@@ -504,21 +534,149 @@ class CdutSpBottomAppBar extends StatelessWidget {
         ),
         IconButton(
           icon: Icon(
-            Theme.of(context).platform == TargetPlatform.iOS
-                ? Icons.more_horiz
-                : Icons.more_vert,
-            semanticLabel: 'Show menu actions', color: cdutSpGrey
+              Theme.of(context).platform == TargetPlatform.iOS
+                  ? Icons.more_horiz
+                  : Icons.more_vert,
+              semanticLabel: 'Show menu actions', color: cdutSpGrey
           ),
           onPressed: () {
+            Navigator.push(context,MaterialPageRoute(
+              builder: (BuildContext context)=>OverscrollDemo()
+              ,
+            ));
             Scaffold.of(context).showSnackBar(
               const SnackBar(content: Text('菜单栏'),duration: Duration(seconds: 2)),
             );
           },
         ),
+        IconButton(
+          icon: const Icon(Icons.refresh,color: cdutSpGrey),
+          onPressed: callback
+        ),
       ]),
     );
   }
 }
+class _OpenContainerWrapper extends StatelessWidget {
+  const _OpenContainerWrapper({
+    this.closedBuilder,
+    this.transitionType,
+    this.data
+  });
+
+  final OpenContainerBuilder closedBuilder;
+  final ContainerTransitionType transitionType;
+  final CardMessage data;
+
+  @override
+  Widget build(BuildContext context) {
+    return OpenContainer(
+      closedElevation: 2,
+      transitionType: transitionType,
+      openBuilder: (BuildContext context, VoidCallback _) {
+        return DetailsPage(detailData: data,);
+      },
+      tappable: true,
+      closedBuilder: closedBuilder,
+    );
+  }
+}
+class _CardDataItem extends StatelessWidget{
+  const _CardDataItem({Key key,this.page,this.data,this.openContainer}):super (key :key);
+  final CdutSpPage page;
+  final CardMessage data;
+  final VoidCallback openContainer;
+  @override
+  Widget build(BuildContext context) {
+
+    return InkWell(
+      onTap: openContainer,
+      customBorder: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20)
+      ),
+      //borderRadius: BorderRadius.circular(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          AspectRatio(
+            child: Image.asset(getRandomImageStr(),
+              //package:data.imageAssetPackage,
+              fit: BoxFit.fitWidth,),
+            aspectRatio: 24/13,
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 3, 8, 8),
+              child: Column(
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: <Widget>[
+                      Text(data.collage+':',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: cdutSpBlue100,
+                            fontWeight: FontWeight.w500
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 3, 0, 0),
+                        child: Text(
+                          data.userName,
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: cdutSpBlue100,
+                              fontWeight: FontWeight.w500
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  //SizedBox(height: 10,),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Text(data.message,
+                        style: TextStyle(
+                            fontSize: 10
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 5,),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Icon(page.iconData,color: page.color,size: 16,),
+                      Text(
+                        data.date.substring(5,17),
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold
+                        ),
+                      ),
+                      LikeWidget()
+                    ],
+                  )
+                ],
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}
+String getRandomImageStr(){
+  var random=new Random();
+  String imageStr='assets/images/cdutsp_image_'+random.nextInt(25).toString()+'.jpg';
+  print(imageStr);
+  return imageStr;
+
+}
+
+
 class LikeWidget extends StatefulWidget{
   @override
   _LikeWidgetState createState() {
@@ -530,7 +688,7 @@ class LikeWidget extends StatefulWidget{
 class _LikeWidgetState extends State<LikeWidget>{
   bool _isLiked=false;
   //考虑死锁的问题，类似于java中的votile
-  int _likeCount=0;
+  int _likeNumCount=0;
   @override
   Widget build(BuildContext context) {
 
@@ -554,7 +712,7 @@ class _LikeWidgetState extends State<LikeWidget>{
           child: Container(
             padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
             child: Text(
-              '$_likeCount',
+              '$_likeNumCount',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: cdutSpGrey
@@ -569,10 +727,10 @@ class _LikeWidgetState extends State<LikeWidget>{
   void _toggleLiked() {
     setState(() {
       if(_isLiked){
-        _likeCount--;
+        _likeNumCount--;
         _isLiked=false;
       }else{
-        _likeCount++;
+        _likeNumCount++;
         _isLiked=true;
       }
     });

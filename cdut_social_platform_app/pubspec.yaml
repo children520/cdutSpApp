@@ -25,6 +25,7 @@ dependencies:
   animations: ^1.0.0+5
   date_format: ^1.0.8
   http: ^0.12.0+4
+  image: ^2.1.12
   flutter_picker:
     git: git://github.com/yangyxd/flutter_picker.git
 
@@ -33,8 +34,8 @@ dependencies:
   cupertino_icons: ^0.1.2
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
+  #flutter_test:
+  # sdk: flutter
 
 
 # For information on the generic Dart part of this file, see the
@@ -50,6 +51,7 @@ flutter:
   assets:
     - assets/logo.png
     - assets/cdutbackground.png
+    - assets/images/
   fonts:
     - family: ZCOOLXiaoWei
       fonts:

@@ -1,5 +1,6 @@
 import 'package:cdut_social_platform_app/color.dart';
 import 'package:cdut_social_platform_app/home.dart';
+import 'package:cdut_social_platform_app/model/CardMessage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -7,7 +8,7 @@ import 'model/cdutSpCardDataModel.dart';
 import 'package:flutter/material.dart';
 class DetailsPage extends StatefulWidget {
   DetailsPage({Key key,this.detailData}):super(key: key);
-  final CdutSpCardData detailData;
+  final CardMessage detailData;
   @override
   _DetailPageState createState() {
     return _DetailPageState();
@@ -49,7 +50,10 @@ class _DetailPageState extends State<DetailsPage>{
             backgroundColor: Colors.transparent,
             flexibleSpace: FlexibleSpaceBar(
               title: Text('成理表白墙',style: GoogleFonts.zCOOLXiaoWei(fontSize: 24),),
-              background: Image.asset(widget.detailData.imageAsset,fit: fullWidth?BoxFit.fitWidth:BoxFit.cover,),
+              background: Image.asset(
+                'assets/logo.png',
+                //widget.detailData.imageAsset,
+                fit: fullWidth?BoxFit.fitWidth:BoxFit.cover,),
             ),
           ),
           SliverPadding(
@@ -74,7 +78,7 @@ class _DetailPageState extends State<DetailsPage>{
                               children: <Widget>[
                                 Icon(Icons.person_outline,size: 25,),
                                 SizedBox(width: 10,),
-                                Text(widget.detailData.college+'-'+widget.detailData.name,
+                                Text(widget.detailData.collage+'-'+widget.detailData.userName,
                                   style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -91,7 +95,7 @@ class _DetailPageState extends State<DetailsPage>{
                           width:MediaQuery.of(context).size.width,
                           padding: const EdgeInsets.symmetric(horizontal: 10,vertical: 20),
                           child: Text(
-                            widget.detailData.content,
+                            widget.detailData.message,
                             textAlign: TextAlign.start,
                             style: TextStyle(
                               color: cdutSpGrey,
