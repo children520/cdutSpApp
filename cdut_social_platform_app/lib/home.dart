@@ -1,11 +1,9 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:math';
-import 'package:animations/animations.dart';
+import 'package:animations/animations.dart' as animation;
 import 'package:cdut_social_platform_app/Overscroll.dart';
-import 'package:cdut_social_platform_app/login.dart';
 import 'package:cdut_social_platform_app/model/CardMessage.dart';
 import 'package:cdut_social_platform_app/post.dart';
 import 'package:cdut_social_platform_app/register.dart';
@@ -15,11 +13,10 @@ import 'package:cdut_social_platform_app/color.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'model/cdutSpPageModel.dart';
-import 'model/cdutSpCardDataModel.dart';
 import 'detail.dart';
 import 'package:http/http.dart' as http;
 import 'backdrop.dart';
-import 'package:cdut_social_platform_app/global.dart';
+import'package:image/image.dart' as image;
 import 'dart:math' as math;
 const String _kGalleryAssetsPackage = 'flutter_gallery_assets';
 
@@ -107,20 +104,17 @@ List<CardMessage> favoriteCardMessageList=List();
 List<CardMessage> searchCardMessageList=List();
 List<CardMessage> commentCardMessageList=List();
 List<int> idList=List();
-final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
-class RIKeys {
-  static final riKey1 = const Key('__RIKEY1__');
-  static final riKey2 = const Key('__RIKEY2__');
-  static final riKey3 = const Key('__RIKEY3__');
-}
+CardMessage cardMessage;
+
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
-  ContainerTransitionType _transitionType = ContainerTransitionType.fade;
+  animation.ContainerTransitionType _transitionType = animation.ContainerTransitionType.fade;
   final GlobalKey _backdropKey=GlobalKey(debugLabel: 'Backdrop');
   AnimationController _controller;
   Animation<RelativeRect> _layerAnimation;
   CdutSpPage cdutSpPage;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  String userName;
+  String label;
+
   final Map<CdutSpPage,List<CardMessage>> _allPages=<CdutSpPage,List<CardMessage>>{
     CdutSpPage(label: '表白',iconData: Icons.favorite,color: cdutSpRed):favoriteCardMessageList,
     CdutSpPage(label: '寻物',iconData: Icons.search,color: cdutSpBlue100):searchCardMessageList,
@@ -130,9 +124,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   @override
   void initState(){
     super.initState();
+    /*cdimage = Image.asset(getRandomImageStr(),
+//package:data.imageAssetPackage,
+      fit: BoxFit.fitWidth,);
+*/
     getAllCardMessage();
     //removeUserState();
     _controller=AnimationController(duration: const Duration(microseconds: 300),value: 1,vsync: this);
+  }
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    //preCacheImageAllImages(context);
   }
   @override
   void dispose(){
@@ -219,7 +222,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ),
       leading: IconButton(
         icon: AnimatedIcon(
-
           icon: AnimatedIcons.close_menu,
           progress: _controller.view,
         ),
@@ -232,16 +234,29 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             const PopupMenuItem<String>(
               child: ListTile(
                 leading: Icon(Icons.access_time),
-                title: Text('时间'),
+                title: Text('最新'),
               ),
+              value: "new",
             ),
             const PopupMenuItem<String>(
               child: ListTile(
                 leading: Icon(Icons.thumb_up),
-                title: Text('热度'),
+                title: Text('最热'),
               ),
+              value: "hot",
             ),
           ],
+          onSelected: (String action){
+            switch(action){
+              case "new":
+                print("new");
+                listNewSort();
+                break;
+              case "hot":
+                print("hot");
+                break;
+            }
+          },
         )
       ],
       bottom: TabBar(
@@ -252,15 +267,27 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ),
     );
   }
+  void listNewSort(){
+    switch(label){
+      case "表白":
+        favoriteCardMessageList.sort((left,right)=>left.date.compareTo(right.date));
+        for(CardMessage cardMessage in favoriteCardMessageList){
+          print(cardMessage.date);
+        }
+    }
+
+
+  }
   Widget buildTabBarView(){
     return TabBarView(
         children: _allPages.keys.map<Widget>((CdutSpPage page) {
+
           return SafeArea(
             top: false,
             bottom: false,
             child: Builder(
               builder: (BuildContext context) {
-                cdutSpPage=page;
+
                 return CustomScrollView(
                   key: PageStorageKey<CdutSpPage>(page),
                   slivers: <Widget>[
@@ -275,6 +302,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                       ),
                       delegate: SliverChildBuilderDelegate(
                               (BuildContext context,int index){
+                                label=page.label;
+                                print(label);
                             final CardMessage data=_allPages[page][index];
                             return Padding(
                               padding: const EdgeInsets.all(5.0),
@@ -283,7 +312,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                 data: data,
                                 closedBuilder: (BuildContext _,VoidCallback openContainer){
                                   return _CardDataItem(page: page,
-                                    data: data,openContainer: openContainer,);
+                                    data: data,openContainer: openContainer,onDoubleTapDown: (){
+                                       _toggleLiked(data);
+                                       updateLikeNumCount(data);
+                                    },
+                                  );
                                 },
                               ),
                             );
@@ -301,7 +334,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 
+  void  _toggleLiked(CardMessage cardMessage) {
+    setState(() {
+      if(cardMessage.isLiked){
+        cardMessage.likeNum--;
+        cardMessage.isLiked=false;
 
+      }else{
+        cardMessage.likeNum++;
+        cardMessage.isLiked=true;
+      }
+    });
+
+  }
   void ShowPostPage(BuildContext context,CdutSpPage page){
     Navigator.push(context, MaterialPageRoute(
       builder: (BuildContext context)=>PostPage(
@@ -405,14 +450,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         'http://10.0.2.2:8080/card/all'
     );
     initAllCardMessage(response.body);
-    print(response.body);
     return response;
   }
   void initAllCardMessage(String response){
     CardMessage cardMessage;
     for(var val in json.decode(response)){
       cardMessage=CardMessage.fromjson(val);
-      print(cardMessage.id);
+      cardMessage.isLiked=false;
       if(!idList.contains(cardMessage.id)){
         idList.add(cardMessage.id);
         switch(val['label']){
@@ -420,7 +464,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             setState(() {
               favoriteCardMessageList.add(cardMessage);
             });
-
             break;
           case '寻物':
             setState(() {
@@ -432,11 +475,23 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             setState(() {
               commentCardMessageList.add(cardMessage);
             });
-
             break;
         }
       }
     }
+  }
+  Future<http.Response> updateLikeNumCount(CardMessage cardMessage) async{
+    final http.Response response=await http.Client().post(
+      'http://10.0.2.2:8080/card/'+cardMessage.id.toString(),
+      headers: <String,String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String,dynamic>{
+        'likeNum':cardMessage.likeNum
+      }),
+    );
+    print(response.body);
+    return response;
   }
 }
 void removeUserState() async{
@@ -564,13 +619,13 @@ class _OpenContainerWrapper extends StatelessWidget {
     this.data
   });
 
-  final OpenContainerBuilder closedBuilder;
-  final ContainerTransitionType transitionType;
+  final animation.OpenContainerBuilder closedBuilder;
+  final animation.ContainerTransitionType transitionType;
   final CardMessage data;
 
   @override
   Widget build(BuildContext context) {
-    return OpenContainer(
+    return animation.OpenContainer(
       closedElevation: 2,
       transitionType: transitionType,
       openBuilder: (BuildContext context, VoidCallback _) {
@@ -581,16 +636,19 @@ class _OpenContainerWrapper extends StatelessWidget {
     );
   }
 }
+
 class _CardDataItem extends StatelessWidget{
-  const _CardDataItem({Key key,this.page,this.data,this.openContainer}):super (key :key);
+  const _CardDataItem({Key key,this.page,this.data,this.openContainer,this.onDoubleTapDown,this.isLiked}):super (key :key);
   final CdutSpPage page;
   final CardMessage data;
   final VoidCallback openContainer;
+  final GestureTapCallback onDoubleTapDown;
+  final bool isLiked;
   @override
   Widget build(BuildContext context) {
-
     return InkWell(
       onTap: openContainer,
+      onDoubleTap: onDoubleTapDown,
       customBorder: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20)
       ),
@@ -600,8 +658,8 @@ class _CardDataItem extends StatelessWidget{
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
           AspectRatio(
-            child: Image.asset(getRandomImageStr(),
-              //package:data.imageAssetPackage,
+            child: Image.asset('assets/logo.png',
+//package:data.imageAssetPackage,
               fit: BoxFit.fitWidth,),
             aspectRatio: 24/13,
           ),
@@ -656,7 +714,7 @@ class _CardDataItem extends StatelessWidget{
                             fontWeight: FontWeight.bold
                         ),
                       ),
-                      LikeWidget()
+                      LikeWidget(cardMessage: data,isLiked: isLiked,)
                     ],
                   )
                 ],
@@ -671,26 +729,33 @@ class _CardDataItem extends StatelessWidget{
 String getRandomImageStr(){
   var random=new Random();
   String imageStr='assets/images/cdutsp_image_'+random.nextInt(25).toString()+'.jpg';
-  print(imageStr);
+  //print(imageStr);
   return imageStr;
-
 }
-
-
-class LikeWidget extends StatefulWidget{
-  @override
-  _LikeWidgetState createState() {
-    return _LikeWidgetState();
+void preCacheImageAllImages(BuildContext context){
+  for(int i=0;i<=25;i++){
+    String imageStr='assets/images/cdutsp_image_'+i.toString()+'.jpg';
+    precacheImage(AssetImage(imageStr), context);
   }
 
 }
 
+class LikeWidget extends StatefulWidget{
+  final CardMessage cardMessage;
+  final bool isLiked;
+  LikeWidget({this.cardMessage,this.isLiked});
+  @override
+  _LikeWidgetState createState() {
+    return _LikeWidgetState();
+  }
+}
+
 class _LikeWidgetState extends State<LikeWidget>{
-  bool _isLiked=false;
-  //考虑死锁的问题，类似于java中的votile
-  int _likeNumCount=0;
+
+//考虑死锁的问题，类似于java中的votile
   @override
   Widget build(BuildContext context) {
+    //print(widget.cardMessage.id);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -698,21 +763,16 @@ class _LikeWidgetState extends State<LikeWidget>{
       children: <Widget>[
         Container(
           padding: EdgeInsets.zero,
-          child: GestureDetector(
-            onTap: (){
-              _toggleLiked();
-            },
-            child: Icon(Icons.thumb_up,
-              size: 18,
-              color: _isLiked ? cdutSpOrange900:cdutSpGrey,),
-          ),
+          child: Icon(Icons.thumb_up,
+            size: 18,
+            color: widget.cardMessage.isLiked ? cdutSpOrange900:cdutSpGrey,),
         ),
         SizedBox(
           width: 18,
           child: Container(
             padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
             child: Text(
-              '$_likeNumCount',
+              widget.cardMessage.likeNum.toString(),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: cdutSpGrey
@@ -724,30 +784,18 @@ class _LikeWidgetState extends State<LikeWidget>{
     );
   }
 
-  void _toggleLiked() {
-    setState(() {
-      if(_isLiked){
-        _likeNumCount--;
-        _isLiked=false;
-      }else{
-        _likeNumCount++;
-        _isLiked=true;
-      }
-    });
-  }
 
 }
+
 class CdutSpFloatingActionButton extends StatefulWidget{
   @override
   CdutSpFloatingActionButtonState createState() {
-    // TODO: implement createState
     return CdutSpFloatingActionButtonState();
   }
 }
 class CdutSpFloatingActionButtonState extends State<CdutSpFloatingActionButton>{
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return null;
   }
 
