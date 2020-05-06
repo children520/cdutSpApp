@@ -3,7 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'package:animations/animations.dart' as animation;
-import 'package:cdut_social_platform_app/Overscroll.dart';
+
 import 'package:cdut_social_platform_app/model/CardMessage.dart';
 import 'package:cdut_social_platform_app/post.dart';
 import 'package:cdut_social_platform_app/register.dart';
@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:cdut_social_platform_app/color.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'global.dart';
 import 'model/cdutSpPageModel.dart';
 import 'detail.dart';
 import 'package:http/http.dart' as http;
@@ -100,13 +101,13 @@ class HomePage extends StatefulWidget {
     return _HomePageState();
   }
 }
-List<CardMessage> favoriteCardMessageList=List();
-List<CardMessage> searchCardMessageList=List();
-List<CardMessage> commentCardMessageList=List();
-List<int> idList=List();
-CardMessage cardMessage;
 
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
+  static List<CardMessage> favoriteCardMessageList=List();
+  static List<CardMessage> searchCardMessageList=List();
+  static List<CardMessage> commentCardMessageList=List();
+  List<int> idList=List();
+  CardMessage cardMessage;
   animation.ContainerTransitionType _transitionType = animation.ContainerTransitionType.fade;
   final GlobalKey _backdropKey=GlobalKey(debugLabel: 'Backdrop');
   AnimationController _controller;
@@ -114,7 +115,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   CdutSpPage cdutSpPage;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   String label;
-
+  String ownUserName;
+  bool selectedNew=true;
+  bool menuSelect=true;
   final Map<CdutSpPage,List<CardMessage>> _allPages=<CdutSpPage,List<CardMessage>>{
     CdutSpPage(label: '表白',iconData: Icons.favorite,color: cdutSpRed):favoriteCardMessageList,
     CdutSpPage(label: '寻物',iconData: Icons.search,color: cdutSpBlue100):searchCardMessageList,
@@ -124,26 +127,29 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   @override
   void initState(){
     super.initState();
-    /*cdimage = Image.asset(getRandomImageStr(),
-//package:data.imageAssetPackage,
-      fit: BoxFit.fitWidth,);
-*/
     getAllCardMessage();
+
+    Global.init().then((map){
+      ownUserName=Global.localUser.userName;
+    });
     //removeUserState();
     _controller=AnimationController(duration: const Duration(microseconds: 300),value: 1,vsync: this);
   }
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    //preCacheImageAllImages(context);
   }
   @override
   void dispose(){
     _controller.dispose();
-    print("dispose");
     super.dispose();
   }
-  void showInSnackBar(String value){
+  void initListNewSort(){
+    favoriteCardMessageList.sort((left,right)=>right.date.compareTo(left.date));
+    searchCardMessageList.sort((left,right)=>right.date.compareTo(left.date));
+    commentCardMessageList.sort((left,right)=>right.date.compareTo(left.date));
+  }
+  void showInSnackBar(String value,bool isNeedCircle){
     _scaffoldKey.currentState..removeCurrentSnackBar()..showSnackBar(SnackBar(
       content: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -154,10 +160,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           SizedBox(
             height: 25,
             width: 25,
-            child: CircularProgressIndicator(
+            child: isNeedCircle ? CircularProgressIndicator(
               backgroundColor: cdutSpBlue100,
               valueColor: new AlwaysStoppedAnimation(cdutSpOrange900),
-            ),
+            ):null,
           )
         ],
       ),duration: Duration(seconds: 2),
@@ -166,7 +172,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   Future<void> _handleRefresh(){
     final Completer<void> completer=Completer<void>();
-    showInSnackBar("正在刷新");
+    showInSnackBar("正在刷新",true);
     completer.complete();
     return completer.future.then((_){
       getAllCardMessage();
@@ -193,7 +199,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         ),
         floatingActionButton: buildFloatingActionButton(),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        bottomNavigationBar: CdutSpBottomAppBar(color:cdutSpWhite,shape: CircularNotchedRectangle(),callback: getAllCardMessage,)
+        bottomNavigationBar: CdutSpBottomAppBar(color:cdutSpWhite,shape: CircularNotchedRectangle(),callback: menuSelect?getAllCardMessage:getOwnList,)
       ),
     );
   }
@@ -211,83 +217,213 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   Widget buildSliverAppBar(){
     return SliverAppBar(
-      expandedHeight: 160,
+      expandedHeight: 220,
       pinned: true,
       backgroundColor: cdutSpBlue100,
       automaticallyImplyLeading: false,
       forceElevated: true,
       centerTitle: true,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          margin: EdgeInsets.fromLTRB(0,80, 0, 0),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Material(
+                  color: selectedNew ? cdutSpWhite38 :cdutSpBlue100,
+                  child: InkWell(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: <Widget>[
+                            SizedBox(width: 20,),
+                            Icon(Icons.access_time,color: cdutSpWhite,),
+                            SizedBox(width: 20,),
+                            Text("最新",style: TextStyle(color: cdutSpWhite),),
+                          ],
+                        ),
+                      ),
+                    onTap: !selectedNew ?(){
+                      setState(() {
+                        if(selectedNew){
+                          selectedNew=false;
+                        }else{
+                          selectedNew=true;
+                        }
+                      });
+                      listNewSort();
+                    } :null,
+                  ),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5)
+                  ),
+                ),
+                SizedBox(height: 5,),
+                Material(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5)
+                  ),
+                  child: InkWell(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: <Widget>[
+                          SizedBox(width: 20,),
+                          Icon(Icons.thumb_up,color: cdutSpWhite,),
+                          SizedBox(width: 20,),
+                          Text("最热",style: TextStyle(color: cdutSpWhite),),
+                        ],
+                      ),
+                    ),
+                    onTap: selectedNew ?(){
+                        setState(() {
+                          if(selectedNew){
+                            selectedNew=false;
+                          }else{
+                            selectedNew=true;
+                          }
+                        });
+                      listHotSort();
+                    } :null,
+                  ),
+                  color: selectedNew ?cdutSpBlue100 :cdutSpWhite38,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
       title: CdutSpBackdropTitle(
           listenable:_controller.view
       ),
       leading: IconButton(
         icon: AnimatedIcon(
-          icon: AnimatedIcons.close_menu,
+          icon: AnimatedIcons.home_menu,
           progress: _controller.view,
         ),
-        onPressed: _CdutSpToggleBackDropVisibility,
+        onPressed: () {
+          _CdutSpToggleBackDropVisibility();
+          if (menuSelect) {
+            menuSelect = false;
+            getOwnList();
+          } else {
+            menuSelect = true;
+            getAllCardMessage();
+          }
+        }
       ),
-      actions: <Widget>[
-        PopupMenuButton(
-          icon: Icon(Icons.expand_more,color: cdutSpWhite,),
-          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-            const PopupMenuItem<String>(
-              child: ListTile(
-                leading: Icon(Icons.access_time),
-                title: Text('最新'),
-              ),
-              value: "new",
-            ),
-            const PopupMenuItem<String>(
-              child: ListTile(
-                leading: Icon(Icons.thumb_up),
-                title: Text('最热'),
-              ),
-              value: "hot",
-            ),
-          ],
-          onSelected: (String action){
-            switch(action){
-              case "new":
-                print("new");
-                listNewSort();
-                break;
-              case "hot":
-                print("hot");
-                break;
-            }
-          },
-        )
-      ],
-      bottom: TabBar(
-        tabs: _allPages.keys.map<Widget>(
-                (CdutSpPage page) =>
-                Tab(text: page.label, icon: Icon(page.iconData),)
-        ).toList(),
+
+//      actions: <Widget>[
+//        PopupMenuButton(
+//          icon: Icon(Icons.expand_more,color: cdutSpWhite,),
+//          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+//            const PopupMenuItem<String>(
+//              child: ListTile(
+//                leading: Icon(Icons.access_time),
+//                title: Text('最新'),
+//              ),
+//              value: "new",
+//            ),
+//            const PopupMenuItem<String>(
+//              child: ListTile(
+//                leading: Icon(Icons.thumb_up),
+//                title: Text('最热'),
+//              ),
+//              value: "hot",
+//            ),
+//          ],
+//          onSelected: (String action){
+//            switch(action){
+//              case "new":
+//                print("new");
+//                listNewSort();
+//                break;
+//              case "hot":
+//                print("hot");
+//                listHotSort();
+//                break;
+//            }
+//          },
+//        )
+//      ],
+      bottom: PreferredSize(                       // Add this code
+        preferredSize: Size.fromHeight(70.0),      // Add this code
+        child: TabBar(
+          tabs: _allPages.keys.map<Widget>(
+                  (CdutSpPage page) =>
+                  Tab(text: page.label, icon: Icon(page.iconData),)
+          ).toList(),
+        ),                           // Add this code
       ),
+
     );
+  }
+  void removeListNotOwn(List list){
+    setState(() {
+      var toRemove=[];
+      for(CardMessage cardMessage in list){
+        if(cardMessage.userName!=ownUserName){
+          toRemove.add(cardMessage);
+        }
+      }
+      list.removeWhere((e)=>toRemove.contains(e));
+    });
+
+  }
+  void getOwnList(){
+      getAllCardMessage().whenComplete((){
+        removeListNotOwn(favoriteCardMessageList);
+        removeListNotOwn(searchCardMessageList);
+        removeListNotOwn(commentCardMessageList);
+      });
   }
   void listNewSort(){
     switch(label){
       case "表白":
-        favoriteCardMessageList.sort((left,right)=>left.date.compareTo(right.date));
-        for(CardMessage cardMessage in favoriteCardMessageList){
-          print(cardMessage.date);
-        }
+        setStateDateSortList(favoriteCardMessageList);
+        break;
+      case "寻物":
+        setStateDateSortList(searchCardMessageList);
+        break;
+      case "吐槽":
+        setStateDateSortList(commentCardMessageList);
+        break;
     }
-
-
+  }
+  void setStateDateSortList(List list){
+    setState(() {
+      list.sort((left,right)=>right.date.compareTo(left.date));
+    });
+  }
+  void setStateLikeNumSortList(List list){
+    setState(() {
+      list.sort((left,right)=>right.likeNum.compareTo(left.likeNum));
+    });
+  }
+  void listHotSort(){
+    switch(label){
+      case "表白":
+        setStateLikeNumSortList(favoriteCardMessageList);
+        break;
+      case "寻物":
+        setStateLikeNumSortList(searchCardMessageList);
+        break;
+      case "吐槽":
+        setStateLikeNumSortList(commentCardMessageList);
+        break;
+    }
   }
   Widget buildTabBarView(){
     return TabBarView(
         children: _allPages.keys.map<Widget>((CdutSpPage page) {
-
           return SafeArea(
             top: false,
             bottom: false,
             child: Builder(
               builder: (BuildContext context) {
-
+                cdutSpPage=page;
                 return CustomScrollView(
                   key: PageStorageKey<CdutSpPage>(page),
                   slivers: <Widget>[
@@ -302,9 +438,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                       ),
                       delegate: SliverChildBuilderDelegate(
                               (BuildContext context,int index){
-                                label=page.label;
-                                print(label);
                             final CardMessage data=_allPages[page][index];
+                            label=page.label;
                             return Padding(
                               padding: const EdgeInsets.all(5.0),
                               child: _OpenContainerWrapper(
@@ -312,10 +447,52 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                 data: data,
                                 closedBuilder: (BuildContext _,VoidCallback openContainer){
                                   return _CardDataItem(page: page,
-                                    data: data,openContainer: openContainer,onDoubleTapDown: (){
+                                    data: data,openContainer: openContainer,
+                                    onDoubleTapDown: (){
                                        _toggleLiked(data);
                                        updateLikeNumCount(data);
                                     },
+                                    onLongPress: !menuSelect ?(){
+                                      showDialog(context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: Padding(
+                                              padding: const EdgeInsets.all(3.0),
+                                              child: Row(
+                                                children: <Widget>[
+                                                  Icon(Icons.warning,color: cdutSpOrange900,size: 25,),
+                                                  Padding(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                                                    child: Text("提示",style: TextStyle(color: cdutSpOrange900,fontWeight: FontWeight.bold),),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                            content: Text("是否删除"+data.userName+"于"+data.date+"发布的消息？"),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(10)
+                                            ),
+                                            actions: <Widget>[
+                                              FlatButton(
+                                                child: const Text('取消'),
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                },
+                                              ),
+                                              RaisedButton(
+                                                child: const Text('确定'),
+                                                onPressed: () {
+                                                  deleteHttpCardMessage(data);
+                                                },
+                                              ),
+                                            ],
+                                          );
+                                        }
+                                      ).then<void>((value){
+
+                                      });
+
+                                    }:null,
                                   );
                                 },
                               ),
@@ -329,11 +506,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               },
             ),
           );
-
         }).toList()
     );
   }
-
+  void deleteListCardMessage(CardMessage cardMessage){
+    switch(label){
+      case '表白':
+        setState(() {
+          favoriteCardMessageList.removeWhere((val)=>val.id==cardMessage.id);
+        });
+    }
+  }
   void  _toggleLiked(CardMessage cardMessage) {
     setState(() {
       if(cardMessage.isLiked){
@@ -402,7 +585,56 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
          end: const RelativeRect.fromLTRB(0.0, 0.0, 0.0, 0.0)
        )
      );
-     //final List<CdutSpPage> backdropItems=_allPages.
+     final List<Widget> backdropItems=_allPages.keys.map<Widget>((CdutSpPage page) {
+       final bool selected= cdutSpPage==_allPages[0];
+       return SafeArea(
+         top: false,
+         bottom: false,
+         child: Builder(
+           builder: (BuildContext context) {
+             cdutSpPage=page;
+             return CustomScrollView(
+               key: PageStorageKey<CdutSpPage>(page),
+               slivers: <Widget>[
+                 SliverOverlapInjector(
+                   handle: NestedScrollView
+                       .sliverOverlapAbsorberHandleFor(context),
+                 ),
+                 SliverGrid(
+                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                       crossAxisCount: 2,
+                       childAspectRatio: 0.9
+                   ),
+                   delegate: SliverChildBuilderDelegate(
+                           (BuildContext context,int index){
+                         final CardMessage data=_allPages[page][index];
+                         label=page.label;
+                         return Padding(
+                           padding: const EdgeInsets.all(5.0),
+                           child: _OpenContainerWrapper(
+                             transitionType: _transitionType,
+                             data: data,
+                             closedBuilder: (BuildContext _,VoidCallback openContainer){
+                               return _CardDataItem(page: page,
+                                 data: data,openContainer: openContainer,onDoubleTapDown: (){
+                                   _toggleLiked(data);
+                                   updateLikeNumCount(data);
+                                 },
+                               );
+                             },
+                           ),
+                         );
+                       },
+                       childCount: _allPages[page].length
+                   ),
+                 )
+               ],
+             );
+           },
+         ),
+       );
+     }).toList();
+
     return Container(
       key: _backdropKey,
       child: Stack(
@@ -420,13 +652,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)
                     ),
-                    child: Text("热度"),
+                    child: Text("最新"),
                   ),
                   Card(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)
                     ),
-                    child: Text("时间"),
+                    child: Text("最热"),
                   )
                 ],
               ),
@@ -438,7 +670,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               onTap: _CdutSpToggleBackDropVisibility,
               onVerticalDragUpdate: _handleDragUpdate,
               onVerticalDragEnd: _handleDragEnd,
-              title: Text("热度"),
+              title: Text("最新"),
+
             ),
           )
         ],
@@ -452,8 +685,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     initAllCardMessage(response.body);
     return response;
   }
+  void clearAllLists(){
+    favoriteCardMessageList.clear();
+    searchCardMessageList.clear();
+    commentCardMessageList.clear();
+  }
   void initAllCardMessage(String response){
     CardMessage cardMessage;
+    idList.clear();
+    clearAllLists();
     for(var val in json.decode(response)){
       cardMessage=CardMessage.fromjson(val);
       cardMessage.isLiked=false;
@@ -478,11 +718,28 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             break;
         }
       }
+      initListNewSort();
     }
+  }
+  Future<http.Response> deleteHttpCardMessage(CardMessage cardMessage) async {
+    final http.Response response=await http.Client().delete(
+      'http://10.0.2.2:8080/card/delete/'+cardMessage.id.toString(),
+      headers: <String,String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+    );
+    print(response.body);
+    showInSnackBar("正在删除......",true);
+    Navigator.pop(context);
+    Future.delayed(Duration(seconds: 1),(){
+      deleteListCardMessage(cardMessage);
+      showInSnackBar(response.body,false);
+    });
+
   }
   Future<http.Response> updateLikeNumCount(CardMessage cardMessage) async{
     final http.Response response=await http.Client().post(
-      'http://10.0.2.2:8080/card/'+cardMessage.id.toString(),
+      'http://10.0.2.2:8080/card/update/'+cardMessage.id.toString(),
       headers: <String,String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -498,55 +755,7 @@ void removeUserState() async{
   SharedPreferences preferences=await SharedPreferences.getInstance();
   preferences.remove("userName");
 }
-Widget buildCdutSpBottomAppBar(BuildContext context,Color color,NotchedShape shape){
-  return  BottomAppBar(
-    color: color,
-    shape: shape,
-    child: Row(children: <Widget>[
-      IconButton(
-        icon: const Icon(Icons.settings, semanticLabel: 'Show bottom sheet',color: cdutSpGrey,),
-        onPressed: () {
-          showModalBottomSheet<void>(
-            context: context,
-            builder: (BuildContext context) => _CdutSpDrawer(),
-          );
-        },
-      ),
-      const Expanded(child: SizedBox()),
-      IconButton(
-        icon: const Icon(Icons.search, semanticLabel: 'show search action',color: cdutSpGrey),
-        onPressed: () {
-          Scaffold.of(context).showSnackBar(
-            const SnackBar(content: Text('寻找'),duration: Duration(seconds: 2)),
-          );
-        },
-      ),
-      IconButton(
-        icon: Icon(
-            Theme.of(context).platform == TargetPlatform.iOS
-                ? Icons.more_horiz
-                : Icons.more_vert,
-            semanticLabel: 'Show menu actions', color: cdutSpGrey
-        ),
-        onPressed: () {
-          Navigator.push(context,MaterialPageRoute(
-            builder: (BuildContext context)=>OverscrollDemo()
-            ,
-          ));
-          Scaffold.of(context).showSnackBar(
-            const SnackBar(content: Text('菜单栏'),duration: Duration(seconds: 2)),
-          );
-        },
-      ),
-      IconButton(
-        icon: const Icon(Icons.refresh,color: cdutSpGrey),
-        onPressed: () {
 
-        },
-      ),
-    ]),
-  );
-}
 class CdutSpBottomAppBar extends StatelessWidget {
   const CdutSpBottomAppBar({
     this.color,
@@ -579,31 +788,28 @@ class CdutSpBottomAppBar extends StatelessWidget {
           },
         ),
         const Expanded(child: SizedBox()),
-        IconButton(
-          icon: const Icon(Icons.search, semanticLabel: 'show search action',color: cdutSpGrey),
-          onPressed: () {
-            Scaffold.of(context).showSnackBar(
-              const SnackBar(content: Text('寻找'),duration: Duration(seconds: 2)),
-            );
-          },
-        ),
-        IconButton(
-          icon: Icon(
-              Theme.of(context).platform == TargetPlatform.iOS
-                  ? Icons.more_horiz
-                  : Icons.more_vert,
-              semanticLabel: 'Show menu actions', color: cdutSpGrey
-          ),
-          onPressed: () {
-            Navigator.push(context,MaterialPageRoute(
-              builder: (BuildContext context)=>OverscrollDemo()
-              ,
-            ));
-            Scaffold.of(context).showSnackBar(
-              const SnackBar(content: Text('菜单栏'),duration: Duration(seconds: 2)),
-            );
-          },
-        ),
+//        IconButton(
+//          icon: const Icon(Icons.search, semanticLabel: 'show search action',color: cdutSpGrey),
+//          onPressed: () {
+//            Scaffold.of(context).showSnackBar(
+//              const SnackBar(content: Text('寻找'),duration: Duration(seconds: 2)),
+//            );
+//          },
+//        ),
+//        IconButton(
+//          icon: Icon(
+//              Theme.of(context).platform == TargetPlatform.iOS
+//                  ? Icons.more_horiz
+//                  : Icons.more_vert,
+//              semanticLabel: 'Show menu actions', color: cdutSpGrey
+//          ),
+//          onPressed: () {
+//
+//            Scaffold.of(context).showSnackBar(
+//              const SnackBar(content: Text('菜单栏'),duration: Duration(seconds: 2)),
+//            );
+//          },
+//        ),
         IconButton(
           icon: const Icon(Icons.refresh,color: cdutSpGrey),
           onPressed: callback
@@ -638,17 +844,19 @@ class _OpenContainerWrapper extends StatelessWidget {
 }
 
 class _CardDataItem extends StatelessWidget{
-  const _CardDataItem({Key key,this.page,this.data,this.openContainer,this.onDoubleTapDown,this.isLiked}):super (key :key);
+  const _CardDataItem({Key key,this.page,this.data,this.openContainer,this.onDoubleTapDown,this.isLiked,this.onLongPress}):super (key :key);
   final CdutSpPage page;
   final CardMessage data;
   final VoidCallback openContainer;
   final GestureTapCallback onDoubleTapDown;
   final bool isLiked;
+  final GestureLongPressCallback onLongPress;
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: openContainer,
       onDoubleTap: onDoubleTapDown,
+      onLongPress: onLongPress,
       customBorder: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20)
       ),
@@ -756,7 +964,6 @@ class _LikeWidgetState extends State<LikeWidget>{
   @override
   Widget build(BuildContext context) {
     //print(widget.cardMessage.id);
-
     return Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:cdut_social_platform_app/global.dart';
+import 'package:cdut_social_platform_app/home.dart';
 import 'package:http/http.dart' as http;
 import 'package:cdut_social_platform_app/color.dart';
 import 'package:cdut_social_platform_app/login.dart';
@@ -233,6 +234,15 @@ class _PostPageState extends State<PostPage>{
       showSnackBar(response.body,false,4);
     });
 
+  }
+  void listAdd(){
+    switch(widget.page.label){
+      case "表白":
+        setState(() {
+          //HomePageState.favoriteCardMessageList.add(cardMessage);
+        });
+
+    }
   }
   void showSnackBar(String val,bool isCir,int sec){
     _scaffoldKey.currentState.showSnackBar(SnackBar(

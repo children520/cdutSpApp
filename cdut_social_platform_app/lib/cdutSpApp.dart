@@ -1,14 +1,9 @@
 import 'dart:ui';
 
-import 'package:cdut_social_platform_app/Overscroll.dart';
 import 'package:cdut_social_platform_app/register.dart';
 import 'package:cdut_social_platform_app/home.dart';
 import 'package:cdut_social_platform_app/login.dart';
-import 'package:cdut_social_platform_app/post.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'tools/cut_corners_border.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'color.dart';
 class cdutSocialPlatformApp extends StatelessWidget {
 
@@ -20,7 +15,6 @@ class cdutSocialPlatformApp extends StatelessWidget {
         '/home':(context)=>HomePage(),
         '/login':(context)=>LoginPage(),
         '/register':(context)=>RegisterPage(),
-        '/overscroll':(context)=>OverscrollDemo(),
       },
       //onGenerateRoute: _getRoute,
       theme: _cdutSpBlueTheme,
